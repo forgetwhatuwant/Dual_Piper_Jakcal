@@ -133,7 +133,7 @@ auto_enable: Whether to automatically enable the system. If True, the system wil
 # If the arm was enabled, it will remain enabled after restarting.
 # If the arm was disabled, it will remain disabled after restarting.
 
-girpper_exist: Whether there is an end gripper. If True, it means there is an end gripper and the gripper control will be turned on.
+gripper_exist: Whether there is an end gripper. If True, it means there is an end gripper and the gripper control will be turned on.
 
 rviz_ctrl_flag: Whether to use RViz to send joint angle messages. If True, the system will receive joint angle messages sent by rViz.
 # Since the joint 7 range in RViz is [0,0.04], but the actual gripper travel is 0.08m, joint 7 values sent by RViz will be multiplied by 2 when controlling the gripper.

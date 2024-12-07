@@ -22,17 +22,17 @@ class C_PiperRosNode(Node):
         # ROS parameters
         self.declare_parameter('can_port', 'can0')
         self.declare_parameter('auto_enable', False)
-        self.declare_parameter('girpper_exist', True)
+        self.declare_parameter('gripper_exist', True)
         self.declare_parameter('rviz_ctrl_flag', False)
 
         self.can_port = self.get_parameter('can_port').get_parameter_value().string_value
         self.auto_enable = self.get_parameter('auto_enable').get_parameter_value().bool_value
-        self.girpper_exist = self.get_parameter('girpper_exist').get_parameter_value().bool_value
+        self.gripper_exist = self.get_parameter('gripper_exist').get_parameter_value().bool_value
         self.rviz_ctrl_flag = self.get_parameter('rviz_ctrl_flag').get_parameter_value().bool_value
 
         self.get_logger().info(f"can_port is {self.can_port}")
         self.get_logger().info(f"auto_enable is {self.auto_enable}")
-        self.get_logger().info(f"girpper_exist is {self.girpper_exist}")
+        self.get_logger().info(f"gripper_exist is {self.gripper_exist}")
         self.get_logger().info(f"rviz_ctrl_flag is {self.rviz_ctrl_flag}")
         # Publishers
         self.joint_pub = self.create_publisher(JointState, 'joint_states_single', 10)
@@ -103,7 +103,7 @@ class C_PiperRosNode(Node):
                 exit(0)
 
             self.PublishArmState()
-            self.PublishArmJointAndGirpper()
+            self.PublishArmJointAndgripper()
             self.PubilsArmEndPose()
 
             rate.sleep()
@@ -131,7 +131,7 @@ class C_PiperRosNode(Node):
         arm_status.communication_status_joint_6 = self.piper.GetArmStatus().arm_status.err_status.communication_status_joint_6
         self.arm_status_pub.publish(arm_status)
 
-    def PublishArmJointAndGirpper(self):
+    def PublishArmJointAndgripper(self):
         # Assign timestamp
         self.joint_states.header.stamp = self.get_clock().now().to_msg()
         # Here, you can set the joint positions to any value you want
@@ -202,7 +202,7 @@ class C_PiperRosNode(Node):
                 gripper = 80000
             if pos_data.gripper < 0:
                 gripper = 0
-            if self.girpper_exist:
+            if self.gripper_exist:
                 self.piper.GripperCtrl(abs(gripper), 1000, 0x01, 0)
             self.piper.MotionCtrl_2(0x01, 0x00, 50)
 
@@ -257,7 +257,7 @@ class C_PiperRosNode(Node):
                 self.piper.MotionCtrl_2(0x01, 0x01, 30)
             self.piper.JointCtrl(joint_0, joint_1, joint_2,
                                  joint_3, joint_4, joint_5)
-            if self.girpper_exist:
+            if self.gripper_exist:
                 if len(joint_data.effort) == 7:
                     gripper_effort = joint_data.effort[6]
                     if gripper_effort > 3:
@@ -281,12 +281,12 @@ class C_PiperRosNode(Node):
         if enable_flag.data:
             self.__enable_flag = True
             self.piper.EnableArm(7)
-            if self.girpper_exist:
+            if self.gripper_exist:
                 self.piper.GripperCtrl(0, 1000, 0x01, 0)
         else:
             self.__enable_flag = False
             self.piper.DisableArm(7)
-            if self.girpper_exist:
+            if self.gripper_exist:
                 self.piper.GripperCtrl(0, 1000, 0x00, 0)
 
     def handle_enable_service(self, req, resp):

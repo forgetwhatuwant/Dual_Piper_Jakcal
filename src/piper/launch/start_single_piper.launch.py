@@ -23,8 +23,8 @@ def generate_launch_description():
         description='Start rviz flag.'
     )
 
-    girpper_exist_arg = DeclareLaunchArgument(
-        'girpper_exist',
+    gripper_exist_arg = DeclareLaunchArgument(
+        'gripper_exist',
         default_value='true',
         description='gripper'
     )
@@ -39,7 +39,7 @@ def generate_launch_description():
             'can_port': LaunchConfiguration('can_port'),
             'auto_enable': LaunchConfiguration('auto_enable'),
             'rviz_ctrl_flag': LaunchConfiguration('rviz_ctrl_flag'),
-            'girpper_exist': LaunchConfiguration('girpper_exist'),
+            'gripper_exist': LaunchConfiguration('gripper_exist'),
         }],
         remappings=[
             ('joint_ctrl_single', '/joint_states'),
@@ -51,6 +51,6 @@ def generate_launch_description():
         can_port_arg,
         auto_enable_arg,
         rviz_ctrl_flag_arg,
-        girpper_exist_arg,
+        gripper_exist_arg,
         piper_node
     ])
