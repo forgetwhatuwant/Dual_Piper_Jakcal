@@ -3,6 +3,7 @@ from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 
+
 def generate_launch_description():
     # Declare the launch arguments
     can_port_arg = DeclareLaunchArgument(
@@ -15,13 +16,13 @@ def generate_launch_description():
         default_value='true',
         description='Automatically enable the Piper node.'
     )
-    
+
     rviz_ctrl_flag_arg = DeclareLaunchArgument(
         'rviz_ctrl_flag',
         default_value='false',
         description='Start rviz flag.'
     )
-    
+
     girpper_exist_arg = DeclareLaunchArgument(
         'girpper_exist',
         default_value='true',

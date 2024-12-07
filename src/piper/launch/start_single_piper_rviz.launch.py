@@ -11,6 +11,7 @@ from ament_index_python.packages import get_package_share_directory
 
 import os
 
+
 def generate_launch_description():
     # 获取piper_description包的路径
     piper_description_path = os.path.join(
@@ -42,13 +43,13 @@ def generate_launch_description():
         default_value='true',
         description='Start rviz flag.'
     )
-    
+
     girpper_exist_arg = DeclareLaunchArgument(
         'girpper_exist',
         default_value='true',
         description='gripper'
     )
-    
+
     # 定义机械臂节点
     piper_ctrl_node = Node(
         package='piper',
@@ -58,8 +59,8 @@ def generate_launch_description():
         parameters=[
             {'can_port': LaunchConfiguration('can_port')},
             {'auto_enable': LaunchConfiguration('auto_enable')},
-            {'rviz_ctrl_flag':  LaunchConfiguration('rviz_ctrl_flag')},
-            {'girpper_exist':  LaunchConfiguration('girpper_exist')}
+            {'rviz_ctrl_flag': LaunchConfiguration('rviz_ctrl_flag')},
+            {'girpper_exist': LaunchConfiguration('girpper_exist')}
         ],
         remappings=[
             ('joint_ctrl_single', '/joint_states')
