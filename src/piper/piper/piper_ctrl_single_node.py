@@ -103,8 +103,8 @@ class C_PiperRosNode(Node):
                 exit(0)
 
             self.PublishArmState()
-            self.PublishArmJointAndgripper()
-            self.PubilsArmEndPose()
+            self.PublishArmJointAndGripper()
+            self.PublishArmEndPose()
 
             rate.sleep()
 
@@ -131,7 +131,7 @@ class C_PiperRosNode(Node):
         arm_status.communication_status_joint_6 = self.piper.GetArmStatus().arm_status.err_status.communication_status_joint_6
         self.arm_status_pub.publish(arm_status)
 
-    def PublishArmJointAndgripper(self):
+    def PublishArmJointAndGripper(self):
         # Assign timestamp
         self.joint_states.header.stamp = self.get_clock().now().to_msg()
         # Here, you can set the joint positions to any value you want
