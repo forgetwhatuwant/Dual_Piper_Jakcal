@@ -1,139 +1,139 @@
 #!/bin/bash
 
-# 使用说明：
+# Usage Instructions:
 
-# 1.先决条件
-#     需要在系统中安装 ip 工具和 ethtool 工具。
+# 1. Prerequisites
+#     Requires the installation of ip and ethtool tools in the system.
 #     sudo apt install ethtool can-utils
-#     确保 gs_usb 驱动已正确安装。
+#     Ensure that the gs_usb driver is correctly installed.
 
-# 2.背景
-#  本脚本旨在自动管理和重命名并激活 CAN（Controller Area Network）接口。
-#  它检查系统中当前的 CAN 模块数量，并根据预定义的 USB 端口重命名 CAN 接口并激活。
-#  这对于有多个 CAN 模块的系统，尤其是不同 CAN 模块需要特定名称的情况，非常有用。
+# 2. Background
+#  This script aims to automatically manage and rename and activate CAN (Controller Area Network) interfaces.
+#  It checks the number of CAN modules currently in the system and renames and activates CAN interfaces based on predefined USB ports.
+#  This is particularly useful for systems with multiple CAN modules, especially when different CAN modules require specific names.
 
-# 3.主要功能
-#  检查 CAN 模块数量：确保系统中检测到的 CAN 模块数量与预设的数量一致。
-#  获取 USB 端口信息：通过 ethtool 获取每个 CAN 模块的 USB 端口信息。
-#  验证 USB 端口：检查每个 CAN 模块的 USB 端口是否符合预定义的端口列表。
-#  重命名 CAN 接口：根据预定义的 USB 端口，将 CAN 接口重命名为目标名称。
+# 3. Main Functions
+#  Check CAN module count: Ensure the number of CAN modules detected in the system matches the preset number.
+#  Get USB port information: Retrieve USB port information for each CAN module using ethtool.
+#  Validate USB ports: Check if the USB port for each CAN module matches the predefined port list.
+#  Rename CAN interfaces: Rename CAN interfaces to target names based on predefined USB ports.
 
-# 4.脚本配置说明
-#   脚本中的关键配置项包括预期的 CAN 模块数量、默认的 CAN 接口名称和波特率设置：
-#   1.预期的 CAN 模块数量：
+# 4. Script Configuration Instructions
+#   Key configuration items in the script include the expected number of CAN modules, default CAN interface names, and baud rate settings:
+#   1. Expected number of CAN modules:
 #     EXPECTED_CAN_COUNT=1
-#     这个值决定了系统中应该检测到的 CAN 模块数量。
-#   2.单个can模块的时候默认的 CAN 接口名称：
+#     This value determines the number of CAN modules that should be detected in the system.
+#   2. Default CAN interface name for a single CAN module:
 #     DEFAULT_CAN_NAME="${1:-can0}"
-#     可以通过命令行参数指定默认的 CAN 接口名称，如果不提供参数，默认为 can0。
-#   3.单个 CAN 模块时的默认比特率：
+#     Can specify the default CAN interface name via command-line arguments, defaulting to can0 if no argument is provided.
+#   3. Default bitrate for a single CAN module:
 #     DEFAULT_BITRATE="${2:-500000}"
-#     可以通过命令行参数指定单个 CAN 模块时的比特率，如果不提供参数，默认为 500000。
-#   4.多个 CAN 模块时的配置:
+#     Can specify the bitrate via command-line arguments, defaulting to 500000 if no argument is provided.
+#   4. Configuration for multiple CAN modules:
 #     declare -A USB_PORTS
 #     USB_PORTS["1-2:1.0"]="can_device_1:500000"
 #     USB_PORTS["1-3:1.0"]="can_device_2:250000"
-#     这里的键表示 USB 端口，值是接口名称和比特率，使用冒号分隔。
+#     The keys represent USB ports, and values are interface names and bitrates, separated by a colon.
 
-# 5.使用步骤
-#  1.编辑脚本：
-#   1. 修改预定义值：
-#      - 预定义的 CAN 模块数量：EXPECTED_CAN_COUNT=2，可以修改为工控机上插入的can模块数量
-#      - 如果只有一个can模块，设定完上面的参数可以直接跳过此处往后看
-#      - (多个can模块)预定义的 USB 端口和目标接口名称：
-#          先将某个can模块插入到预期的usb口，注意在初次配置时，每次在工控机上插入一个can模块
-#          然后执行 sudo ethtool -i can0 | grep bus,并记录下 bus-info: 后面的参数
-#          接着插入下一个can模块，注意不可以与上次can模块插入的usb口相同，然后重复执行上一步
-#          (其实可以用一个can模块去插不同的usb，因为区分模块是根据usb地址来区分的)
-#          所有模块都设计好所应该在的usb口并记录完成后，
-#          根据实际情况修改 USB 端口（bus-info）和目标接口名称。
-#          can_device_1:500000，前者为设定的can名称，后者为设定的波特率
+# 5. Usage Steps
+#  1. Edit the script:
+#   1. Modify predefined values:
+#      - Predefined number of CAN modules: EXPECTED_CAN_COUNT=2, can be modified to the number of CAN modules inserted in the industrial computer
+#      - If there's only one CAN module, set the parameters and skip to the next steps
+#      - (For multiple CAN modules) Predefined USB ports and target interface names:
+#          First, insert a CAN module into the expected USB port. Note that when initially configuring, insert one CAN module at a time in the industrial computer
+#          Then execute `sudo ethtool -i can0 | grep bus`, and record the parameter after bus-info:
+#          Then insert the next CAN module, ensuring it's not in the same USB port as the previous module, and repeat the previous step
+#          (Actually, you can use one CAN module to plug into different USB ports, as module distinction is based on USB address)
+#          After designing and recording the USB ports for all modules,
+#          modify the USB ports (bus-info) and target interface names according to the actual situation.
+#          can_device_1:500000, the former is the set CAN name, the latter is the set bitrate
 #            declare -A USB_PORTS
 #            USB_PORTS["1-2:1.0"]="can_device_1:500000"
 #            USB_PORTS["1-3:1.0"]="can_device_2:250000"
-#          需要修改的是USB_PORTS["1-3:1.0"]内双引号的内容，修改为上面记录的bus-info: 后面的参数
-#   2.赋予脚本执行权限：
-#       打开终端，导航到脚本所在目录，执行以下命令赋予脚本执行权限：
+#          What needs to be modified is the content within the double quotes of USB_PORTS["1-3:1.0"], changed to the parameter after bus-info:
+#   2. Grant script execution permissions:
+#       Open terminal, navigate to the script directory, execute the following command to grant execution permissions:
 #       chmod +x can_config.sh
-#   3.运行脚本：
-#     使用 sudo 执行脚本，因为脚本需要管理员权限来修改网络接口：
-#       1.单个 CAN 模块
-#         1.可以通过命令行参数指定默认的 CAN 接口名称和比特率（默认为 can0 和 500000）：
-#           sudo bash ./can_config.sh [CAN接口名称] [比特率]
-#           例如，指定接口名称为 my_can_interface，比特率为 1000000：
+#   3. Run the script:
+#     Execute the script with sudo, as it requires administrator permissions to modify network interfaces:
+#       1. Single CAN module
+#         1. Can specify default CAN interface name and bitrate via command-line arguments (default is can0 and 500000):
+#           sudo bash ./can_config.sh [CAN interface name] [bitrate]
+#           For example, specify interface name as my_can_interface, bitrate as 1000000:
 #           sudo bash ./can_config.sh my_can_interface 1000000
-#         2.可以通过指定的usb硬件地址来指定can名称
-#           sudo bash ./can_config.sh [CAN接口名称] [比特率] [usb硬件地址]
-#           例如，指定接口名称为 my_can_interface，比特率为 1000000，usb硬件地址为 1-3:1.0：
+#         2. Can specify CAN name by USB hardware address
+#           sudo bash ./can_config.sh [CAN interface name] [bitrate] [USB hardware address]
+#           For example, specify interface name as my_can_interface, bitrate as 1000000, USB hardware address as 1-3:1.0:
 #           sudo bash ./can_config.sh my_can_interface 1000000 1-3:1.0
-#           也就是将 1-3:1.0 usb地址的can设备指定名称为my_can_interface，比特率为 1000000
-#       2.多个 CAN 模块
-#         对于多个 CAN 模块，通过在脚本中设置 USB_PORTS 数组来指定每个 CAN 模块的接口名称和比特率。
-#         无需额外参数，直接运行脚本：
+#           This means the CAN device at USB address 1-3:1.0 is named my_can_interface with bitrate 1000000
+#       2. Multiple CAN modules
+#         For multiple CAN modules, specify each CAN module's interface name and bitrate by setting the USB_PORTS array in the script.
+#         No additional parameters needed, just run the script:
 #         sudo ./can_config.sh
 
-# 注意事项
+# Notes
 
-#     权限要求：
-#         脚本需要使用 sudo 权限，因为网络接口的重命名和设置需要管理员权限。
-#         确保你有足够的权限来运行该脚本。
+#     Permission Requirements:
+#         The script requires sudo permissions because renaming and setting network interfaces need administrator rights.
+#         Ensure you have sufficient permissions to run the script.
 
-#     脚本环境：
-#         本脚本假设在 bash 环境下运行。确保你的系统使用 bash，而不是其他 Shell（如 sh）。
-#         可以通过检查脚本的 Shebang 行（#!/bin/bash）确保使用 bash。
+#     Script Environment:
+#         This script assumes running in a bash environment. Ensure your system uses bash, not other shells (like sh).
+#         You can verify this by checking the script's Shebang line (#!/bin/bash).
 
-#     USB 端口信息：
-#         确保你预定义的 USB 端口信息（bus-info）与实际系统中 ethtool 输出的信息一致。
-#         使用命令 sudo ethtool -i can0、sudo ethtool -i can1 等检查每个 CAN 接口的 bus-info。
+#     USB Port Information:
+#         Ensure the predefined USB port information (bus-info) matches the actual information output by ethtool in the system.
+#         Use commands like sudo ethtool -i can0, sudo ethtool -i can1 to check bus-info for each CAN interface.
 
-#     接口冲突：
-#         确保目标接口名称（如 can_device_1、can_device_2）是唯一的，不与系统中其他现有接口名称冲突。
-#         如果要修改 USB 端口和接口名称的对应关系，请根据实际情况调整 USB_PORTS 数组。
+#     Interface Conflicts:
+#         Ensure target interface names (like can_device_1, can_device_2) are unique and do not conflict with existing interfaces in the system.
+#         If you want to modify the relationship between USB ports and interface names, adjust the USB_PORTS array accordingly.
 #-------------------------------------------------------------------------------------------------#
 
-# 预定义的 CAN 模块数量
+# Pre-defined number of CAN modules
 EXPECTED_CAN_COUNT=2
 
 if [ "$EXPECTED_CAN_COUNT" -eq 1 ]; then
-    # 默认的 CAN 名称，用户可以通过命令行参数设定
+    # Default CAN name, can be set by command-line arguments
     DEFAULT_CAN_NAME="${1:-can0}"
 
-    # 单个 CAN 模块时的默认比特率，用户可以通过命令行参数设定
+    # Default bitrate for single CAN module, can be set by command-line arguments
     DEFAULT_BITRATE="${2:-1000000}"
 
-    # USB 硬件地址（可选参数）
+    # USB hardware address (optional parameter)
     USB_ADDRESS="${3}"
 fi
 
-# 预定义的 USB 端口、目标接口名称及其比特率（在多个 CAN 模块时使用）
+# Pre-defined USB ports, target interface names, and their bitrates (used when multiple CAN modules)
 if [ "$EXPECTED_CAN_COUNT" -ne 1 ]; then
     declare -A USB_PORTS 
     USB_PORTS["1-1:1.0"]="can_left:1000000"
     USB_PORTS["1-3:1.0"]="can_right:1000000"
 fi
 
-# 获取当前系统中的 CAN 模块数量
+# Get the number of CAN modules in the current system
 CURRENT_CAN_COUNT=$(ip link show type can | grep -c "link/can")
 
-# 检查当前系统中的 CAN 模块数量是否符合预期
+# Check if the number of CAN modules matches the expected number
 if [ "$CURRENT_CAN_COUNT" -ne "$EXPECTED_CAN_COUNT" ]; then
-    echo "错误: 检测到的 CAN 模块数量 ($CURRENT_CAN_COUNT) 与预期数量 ($EXPECTED_CAN_COUNT) 不符。"
+    echo "Error: Detected CAN module count ($CURRENT_CAN_COUNT) does not match expected count ($EXPECTED_CAN_COUNT)."
     exit 1
 fi
 
-# 加载 gs_usb 模块
+# Load gs_usb module
 # sudo modprobe gs_usb
 # if [ $? -ne 0 ]; then
-#     echo "错误: 无法加载 gs_usb 模块。"
+#     echo "Error: Unable to load gs_usb module."
 #     exit 1
 # fi
 
-# 判断是否只需要处理一个 CAN 模块
+# Check if only one CAN module needs to be processed
 if [ "$EXPECTED_CAN_COUNT" -eq 1 ]; then
     if [ -n "$USB_ADDRESS" ]; then
-        echo "检测到 USB 硬件地址参数: $USB_ADDRESS"
+        echo "Detected USB hardware address parameter: $USB_ADDRESS"
         
-        # 使用 ethtool 查找与 USB 硬件地址对应的 CAN 接口
+        # Use ethtool to find the CAN interface corresponding to the USB hardware address
         INTERFACE_NAME=""
         for iface in $(ip -br link show type can | awk '{print $1}'); do
             BUS_INFO=$(sudo ethtool -i "$iface" | grep "bus-info" | awk '{print $2}')
@@ -144,139 +144,139 @@ if [ "$EXPECTED_CAN_COUNT" -eq 1 ]; then
         done
         
         if [ -z "$INTERFACE_NAME" ]; then
-            echo "错误: 无法找到与 USB 硬件地址 $USB_ADDRESS 对应的 CAN 接口。"
+            echo "Error: Unable to find CAN interface corresponding to USB hardware address $USB_ADDRESS."
             exit 1
         else
-            echo "找到与 USB 硬件地址 $USB_ADDRESS 对应的接口: $INTERFACE_NAME"
+            echo "Found interface corresponding to USB hardware address $USB_ADDRESS: $INTERFACE_NAME"
         fi
     else
-        # 获取唯一的 CAN 接口
+        # Get the unique CAN interface
         INTERFACE_NAME=$(ip -br link show type can | awk '{print $1}')
         
-        # 检查是否获取到了接口名称
+        # Check if interface name was obtained
         if [ -z "$INTERFACE_NAME" ]; then
-            echo "错误: 无法检测到 CAN 接口。"
+            echo "Error: Unable to detect CAN interface."
             exit 1
         fi
 
-        echo "预期只有一个 CAN 模块，检测到接口 $INTERFACE_NAME"
+        echo "Expected only one CAN module, detected interface $INTERFACE_NAME"
     fi
 
-    # 检查当前接口是否已经激活
+    # Check if the current interface is already activated
     IS_LINK_UP=$(ip link show "$INTERFACE_NAME" | grep -q "UP" && echo "yes" || echo "no")
 
-    # 获取当前接口的比特率
+    # Get the current interface's bitrate
     CURRENT_BITRATE=$(ip -details link show "$INTERFACE_NAME" | grep -oP 'bitrate \K\d+')
 
     if [ "$IS_LINK_UP" == "yes" ] && [ "$CURRENT_BITRATE" -eq "$DEFAULT_BITRATE" ]; then
-        echo "接口 $INTERFACE_NAME 已经激活，并且比特率为 $DEFAULT_BITRATE"
+        echo "Interface $INTERFACE_NAME is already activated with bitrate $DEFAULT_BITRATE"
         
-        # 检查接口名称是否与默认的名称匹配
+        # Check if interface name matches the default name
         if [ "$INTERFACE_NAME" != "$DEFAULT_CAN_NAME" ]; then
-            echo "将接口 $INTERFACE_NAME 重命名为 $DEFAULT_CAN_NAME"
+            echo "Renaming interface $INTERFACE_NAME to $DEFAULT_CAN_NAME"
             sudo ip link set "$INTERFACE_NAME" down
             sudo ip link set "$INTERFACE_NAME" name "$DEFAULT_CAN_NAME"
             sudo ip link set "$DEFAULT_CAN_NAME" up
-            echo "接口已重命名为 $DEFAULT_CAN_NAME，并重新激活。"
+            echo "Interface renamed to $DEFAULT_CAN_NAME and reactivated."
         else
-            echo "接口名称已经是 $DEFAULT_CAN_NAME"
+            echo "Interface name is already $DEFAULT_CAN_NAME"
         fi
     else
-        # 如果接口未激活或比特率不同，进行设置
+        # If interface is not activated or bitrate is different, configure it
         if [ "$IS_LINK_UP" == "yes" ]; then
-            echo "接口 $INTERFACE_NAME 已经激活，但比特率为 $CURRENT_BITRATE，与设定的 $DEFAULT_BITRATE 不符。"
+            echo "Interface $INTERFACE_NAME is activated, but bitrate is $CURRENT_BITRATE, which differs from the set $DEFAULT_BITRATE."
         else
-            echo "接口 $INTERFACE_NAME 未激活或未设置比特率。"
+            echo "Interface $INTERFACE_NAME is not activated or bitrate not set."
         fi
         
-        # 设置接口比特率并激活
+        # Set interface bitrate and activate
         sudo ip link set "$INTERFACE_NAME" down
         sudo ip link set "$INTERFACE_NAME" type can bitrate $DEFAULT_BITRATE
         sudo ip link set "$INTERFACE_NAME" up
-        echo "接口 $INTERFACE_NAME 已重新设置为比特率 $DEFAULT_BITRATE 并激活。"
+        echo "Interface $INTERFACE_NAME has been reset to bitrate $DEFAULT_BITRATE and activated."
         
-        # 重命名接口为默认名称
+        # Rename interface to default name
         if [ "$INTERFACE_NAME" != "$DEFAULT_CAN_NAME" ]; then
-            echo "将接口 $INTERFACE_NAME 重命名为 $DEFAULT_CAN_NAME"
+            echo "Renaming interface $INTERFACE_NAME to $DEFAULT_CAN_NAME"
             sudo ip link set "$INTERFACE_NAME" down
             sudo ip link set "$INTERFACE_NAME" name "$DEFAULT_CAN_NAME"
             sudo ip link set "$DEFAULT_CAN_NAME" up
-            echo "接口已重命名为 $DEFAULT_CAN_NAME，并重新激活。"
+            echo "Interface renamed to $DEFAULT_CAN_NAME and reactivated."
         fi
     fi
 else
-    # 处理多个 CAN 模块
+    # Process multiple CAN modules
 
-    # 检查 USB 端口和目标接口名称的数量是否与预期 CAN 模块数量匹配
+    # Check if number of USB ports matches expected CAN module count
     PREDEFINED_COUNT=${#USB_PORTS[@]}
     if [ "$EXPECTED_CAN_COUNT" -ne "$PREDEFINED_COUNT" ]; then
-        echo "错误: 预设的 CAN 模块数量 ($EXPECTED_CAN_COUNT) 与预定义的 USB 端口数量 ($PREDEFINED_COUNT) 不匹配。"
+        echo "Error: Expected CAN module count ($EXPECTED_CAN_COUNT) does not match predefined USB port count ($PREDEFINED_COUNT)."
         exit 1
     fi
 
-    # 遍历所有 CAN 接口
+    # Iterate through all CAN interfaces
     for iface in $(ip -br link show type can | awk '{print $1}'); do
-        # 使用 ethtool 获取 bus-info
+        # Use ethtool to get bus-info
         BUS_INFO=$(sudo ethtool -i "$iface" | grep "bus-info" | awk '{print $2}')
         
         if [ -z "$BUS_INFO" ];then
-            echo "错误: 无法获取接口 $iface 的 bus-info 信息。"
+            echo "Error: Unable to obtain bus-info for interface $iface."
             continue
         fi
         
-        echo "接口 $iface 插入在 USB 端口 $BUS_INFO"
+        echo "Interface $iface inserted in USB port $BUS_INFO"
 
-        # 检查 bus-info 是否在预定义的 USB 端口列表中
+        # Check if bus-info is in predefined USB port list
         if [ -n "${USB_PORTS[$BUS_INFO]}" ];then
             IFS=':' read -r TARGET_NAME TARGET_BITRATE <<< "${USB_PORTS[$BUS_INFO]}"
             
-            # 检查当前接口是否已经激活
+            # Check if current interface is activated
             IS_LINK_UP=$(ip link show "$iface" | grep -q "UP" && echo "yes" || echo "no")
 
-            # 获取当前接口的比特率
+            # Get current interface's bitrate
             CURRENT_BITRATE=$(ip -details link show "$iface" | grep -oP 'bitrate \K\d+')
 
             if [ "$IS_LINK_UP" == "yes" ] && [ "$CURRENT_BITRATE" -eq "$TARGET_BITRATE" ]; then
-                echo "接口 $iface 已经激活，并且比特率为 $TARGET_BITRATE"
+                echo "Interface $iface is already activated with bitrate $TARGET_BITRATE"
                 
-                # 检查接口名称是否与目标名称匹配
+                # Check if interface name matches target name
                 if [ "$iface" != "$TARGET_NAME" ]; then
-                    echo "将接口 $iface 重命名为 $TARGET_NAME"
+                    echo "Renaming interface $iface to $TARGET_NAME"
                     sudo ip link set "$iface" down
                     sudo ip link set "$iface" name "$TARGET_NAME"
                     sudo ip link set "$TARGET_NAME" up
-                    echo "接口已重命名为 $TARGET_NAME，并重新激活。"
+                    echo "Interface renamed to $TARGET_NAME and reactivated."
                 else
-                    echo "接口名称已经是 $TARGET_NAME"
+                    echo "Interface name is already $TARGET_NAME"
                 fi
             else
-                # 如果接口未激活或比特率不同，进行设置
+                # If interface is not activated or bitrate is different, configure it
                 if [ "$IS_LINK_UP" == "yes" ]; then
-                    echo "接口 $iface 已经激活，但比特率为 $CURRENT_BITRATE，与设定的 $TARGET_BITRATE 不符。"
+                    echo "Interface $iface is activated, but bitrate is $CURRENT_BITRATE, which differs from the set $TARGET_BITRATE."
                 else
-                    echo "接口 $iface 未激活或未设置比特率。"
+                    echo "Interface $iface is not activated or bitrate not set."
                 fi
                 
-                # 设置接口比特率并激活
+                # Set interface bitrate and activate
                 sudo ip link set "$iface" down
                 sudo ip link set "$iface" type can bitrate $TARGET_BITRATE
                 sudo ip link set "$iface" up
-                echo "接口 $iface 已重新设置为比特率 $TARGET_BITRATE 并激活。"
+                echo "Interface $iface has been reset to bitrate $TARGET_BITRATE and activated."
                 
-                # 重命名接口为目标名称
+                # Rename interface to target name
                 if [ "$iface" != "$TARGET_NAME" ]; then
-                    echo "将接口 $iface 重命名为 $TARGET_NAME"
+                    echo "Renaming interface $iface to $TARGET_NAME"
                     sudo ip link set "$iface" down
                     sudo ip link set "$iface" name "$TARGET_NAME"
                     sudo ip link set "$TARGET_NAME" up
-                    echo "接口已重命名为 $TARGET_NAME，并重新激活。"
+                    echo "Interface renamed to $TARGET_NAME and reactivated."
                 fi
             fi
         else
-            echo "错误: 未知的 USB 端口 $BUS_INFO 对应接口 $iface。"
+            echo "Error: Unknown USB port $BUS_INFO for interface $iface."
             exit 1
         fi
     done
 fi
 
-echo "所有 CAN 接口已成功重命名并激活。"
+echo "All CAN interfaces successfully renamed and activated."

@@ -1,38 +1,38 @@
-# 检查 ethtool 是否已安装
+# Check if ethtool is installed
 if ! dpkg -l | grep -q "ethtool"; then
-    echo "\e[31m错误: 系统中未检测到 ethtool。\e[0m"
-    echo "请使用以下命令安装 ethtool:"
+    echo "\e[31mError: ethtool not detected in the system.\e[0m"
+    echo "Please install ethtool using the following command:"
     echo "sudo apt update && sudo apt install ethtool"
     exit 1
 fi
 
-# 检查 can-utils 是否已安装
+# Check if can-utils is installed
 if ! dpkg -l | grep -q "can-utils"; then
-    echo "\e[31m错误: 系统中未检测到 can-utils。\e[0m"
-    echo "请使用以下命令安装 can-utils:"
+    echo "\e[31mError: can-utils not detected in the system.\e[0m"
+    echo "Please install can-utils using the following command:"
     echo "sudo apt update && sudo apt install can-utils"
     exit 1
 fi
 
-# 检查 iproute2 是否已安装
+# Check if iproute2 is installed
 if ! dpkg -l | grep -q "iproute2"; then
-    echo "\e[31m错误: 系统中未检测到 iproute2。\e[0m"
-    echo "请使用以下命令安装 iproute2:"
+    echo "\e[31mError: iproute2 not detected in the system.\e[0m"
+    echo "Please install iproute2 using the following command:"
     echo "sudo apt update && sudo apt install iproute2"
     exit 1
 fi
 
-echo "ethtool 和 can-utils 均已安装。"
+echo "Both ethtool and can-utils are installed."
 
-# 遍历所有 CAN 接口
+# Iterate through all CAN interfaces
 for iface in $(ip -br link show type can | awk '{print $1}'); do
-    # 使用 ethtool 获取 bus-info
+    # Use ethtool to get bus-info
     BUS_INFO=$(sudo ethtool -i "$iface" | grep "bus-info" | awk '{print $2}')
     
     if [ -z "$BUS_INFO" ];then
-        echo "错误: 无法获取接口 $iface 的 bus-info 信息。"
+        echo "Error: Cannot obtain bus-info for interface $iface."
         continue
     fi
     
-    echo "接口 $iface 插入在 USB 端口 $BUS_INFO"
+    echo "Interface $iface is inserted in USB port $BUS_INFO"
 done
