@@ -14,7 +14,7 @@ from geometry_msgs.msg import Pose
 from scipy.spatial.transform import Rotation as R  # For Euler angle to quaternion conversion
 
 
-class C_PiperRosNode(Node):
+class PiperRosNode(Node):
     """ROS2 node for the robotic arm"""
 
     def __init__(self) -> None:
@@ -344,7 +344,7 @@ class C_PiperRosNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    piper_single_node = C_PiperRosNode()
+    piper_single_node = PiperRosNode()
     try:
         rclpy.spin(piper_single_node)
     except KeyboardInterrupt:
