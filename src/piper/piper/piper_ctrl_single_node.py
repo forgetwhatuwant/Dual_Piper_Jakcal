@@ -12,6 +12,7 @@ from piper_msgs.msg import PiperStatusMsg, PosCmd
 from piper_msgs.srv import Enable
 from geometry_msgs.msg import Pose
 from scipy.spatial.transform import Rotation as R  # For Euler angle to quaternion conversion
+from numpy import clip
 
 
 class PiperRosNode(Node):
@@ -230,10 +231,7 @@ class PiperRosNode(Node):
         joint_6 = round(joint_data.position[6] * 1000 * 1000)
         if self.rviz_ctrl_flag:
             joint_6 = joint_6 * 2
-        if joint_6 > 80000:
-            joint_6 = 80000
-        if joint_6 < 0:
-            joint_6 = 0
+        joint_6 = clip(joint_6, 0, 80000)
         if self.GetEnableFlag():
             # Set motor speed
             if joint_data.velocity:
@@ -243,11 +241,7 @@ class PiperRosNode(Node):
             if not all_zeros:
                 lens = len(joint_data.velocity)
                 if lens == 7:
-                    vel_all = round(joint_data.velocity[6])
-                    if vel_all > 100:
-                        vel_all = 100
-                    if vel_all < 0:
-                        vel_all = 0
+                    vel_all = clip(round(joint_data.velocity[6]), 0, 100)
                     self.get_logger().info(f"vel_all: {vel_all}")
                     self.piper.MotionCtrl_2(0x01, 0x01, vel_all)
                 else:
@@ -258,11 +252,7 @@ class PiperRosNode(Node):
                                  joint_3, joint_4, joint_5)
             if self.gripper_exist:
                 if len(joint_data.effort) == 7:
-                    gripper_effort = joint_data.effort[6]
-                    if gripper_effort > 3:
-                        gripper_effort = 3
-                    if gripper_effort < 0.5:
-                        gripper_effort = 0.5
+                    gripper_effort = clip(joint_data.effort[6], 0.5, 3)
                     self.get_logger().info(f"gripper_effort: {gripper_effort}")
                     gripper_effort = round(gripper_effort * 1000)
                     self.piper.GripperCtrl(abs(joint_6), gripper_effort, 0x01, 0)
