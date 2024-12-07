@@ -213,7 +213,6 @@ class C_PiperRosNode(Node):
             joint_data (): The joint data
         """
         factor = 57324.840764  # 1000*180/3.14
-        factor1 = 57.32484
         self.get_logger().info(f"Received Joint States:")
         self.get_logger().info(f"joint_0: {joint_data.position[0]}")
         self.get_logger().info(f"joint_1: {joint_data.position[1]}")
