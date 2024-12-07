@@ -108,11 +108,11 @@ class C_PiperRosNode(Node):
             if(elapsed_time_flag):
                 print("程序自动使能超时,退出程序")
                 exit(0)
-            
+
             self.PublishArmState()
             self.PublishArmJointAndGirpper()
-            self.PubilsArmEndPose()
-            
+            self.PublishArmEndPose()
+
             rate.sleep()
 
     def PublishArmState(self):
@@ -161,8 +161,8 @@ class C_PiperRosNode(Node):
         self.joint_states.velocity = [vel_0, vel_1, vel_2, vel_3, vel_4, vel_5, 0.0]  # Example values
         self.joint_states.effort = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, effort_6]
         self.joint_pub.publish(self.joint_states)
-    
-    def PubilsArmEndPose(self):
+
+    def PublishArmEndPose(self):
         # 末端位姿
         endpos = Pose()
         endpos.position.x = self.piper.GetArmEndPoseMsgs().end_pose.X_axis/1000000
