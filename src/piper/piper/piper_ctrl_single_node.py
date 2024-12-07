@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*-coding:utf8-*-
-# 本文件为控制单个机械臂节点，控制夹爪机械臂运动
+# This file controls a single robotic arm node and handles the movement of the robotic arm with a gripper.
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
@@ -11,17 +11,15 @@ from piper_sdk import C_PiperInterface
 from piper_msgs.msg import PiperStatusMsg, PosCmd
 from piper_msgs.srv import Enable
 from geometry_msgs.msg import Pose
-from scipy.spatial.transform import Rotation as R  # 用于欧拉角到四元数的转换
+from scipy.spatial.transform import Rotation as R  # For Euler angle to quaternion conversion
 
 
 class C_PiperRosNode(Node):
-    """机械臂ros2节点
-    """
+    """ROS2 node for the robotic arm"""
 
     def __init__(self) -> None:
         super().__init__('piper_ctrl_single_node')
-        # 外部param参数
-        # 外部参数
+        # ROS parameters
         self.declare_parameter('can_port', 'can0')
         self.declare_parameter('auto_enable', False)
         self.declare_parameter('girpper_exist', True)
@@ -36,25 +34,25 @@ class C_PiperRosNode(Node):
         self.get_logger().info(f"auto_enable is {self.auto_enable}")
         self.get_logger().info(f"girpper_exist is {self.girpper_exist}")
         self.get_logger().info(f"rviz_ctrl_flag is {self.rviz_ctrl_flag}")
-        # Publisher
+        # Publishers
         self.joint_pub = self.create_publisher(JointState, 'joint_states_single', 10)
         self.arm_status_pub = self.create_publisher(PiperStatusMsg, 'arm_status', 10)
         self.end_pose_pub = self.create_publisher(Pose, 'end_pose', 10)
-        # service
+        # Service
         self.motor_srv = self.create_service(Enable, 'enable_srv', self.handle_enable_service)
-        # joint
+        # Joint
         self.joint_states = JointState()
         self.joint_states.name = ['joint0', 'joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']
         self.joint_states.position = [0.0] * 7
         self.joint_states.velocity = [0.0] * 7
         self.joint_states.effort = [0.0] * 7
-        # 使能标志位
+        # Enable flag
         self.__enable_flag = False
-        # 创建piper类并打开can接口
+        # Create piper class and open CAN interface
         self.piper = C_PiperInterface(can_name=self.can_port)
         self.piper.ConnectPort()
 
-        # 启动订阅线程
+        # Start subscription thread
         self.create_subscription(PosCmd, 'pos_cmd', self.pos_callback, 10)
         self.create_subscription(JointState, 'joint_ctrl_single', self.joint_callback, 10)
         self.create_subscription(Bool, 'enable_flag', self.enable_callback, 10)
@@ -66,18 +64,16 @@ class C_PiperRosNode(Node):
         return self.__enable_flag
 
     def publish_thread(self):
-        """机械臂消息发布
+        """Publish messages from the robotic arm
         """
         rate = self.create_rate(200)  # 200 Hz
         enable_flag = False
-        # 设置超时时间（秒）
+        # Set timeout (seconds)
         timeout = 5
-        # 记录进入循环前的时间
+        # Record the time before entering the loop
         start_time = time.time()
         elapsed_time_flag = False
         while rclpy.ok():
-            # print(self.piper.GetArmLowSpdInfoMsgs().motor_1.foc_status.driver_enable_status)
-            # print(self.piper.GetArmEndPoseMsgs())
             if(self.auto_enable):
                 while not (enable_flag):
                     elapsed_time = time.time() - start_time
@@ -88,27 +84,27 @@ class C_PiperRosNode(Node):
                         self.piper.GetArmLowSpdInfoMsgs().motor_4.foc_status.driver_enable_status and \
                         self.piper.GetArmLowSpdInfoMsgs().motor_5.foc_status.driver_enable_status and \
                         self.piper.GetArmLowSpdInfoMsgs().motor_6.foc_status.driver_enable_status
-                    print("使能状态:", enable_flag)
+                    print("Enable status:", enable_flag)
                     self.piper.EnableArm(7)
                     self.piper.GripperCtrl(0, 1000, 0x01, 0)
                     if(enable_flag):
                         self.__enable_flag = True
                     print("--------------------")
-                    # 检查是否超过超时时间
+                    # Check if the timeout has been exceeded
                     if elapsed_time > timeout:
-                        print("超时....")
+                        print("Timeout....")
                         elapsed_time_flag = True
                         enable_flag = True
                         break
                     time.sleep(1)
                     pass
             if(elapsed_time_flag):
-                print("程序自动使能超时,退出程序")
+                print("Automatic enable timeout, exiting program")
                 exit(0)
 
             self.PublishArmState()
             self.PublishArmJointAndGirpper()
-            self.PublishArmEndPose()
+            self.PubilsArmEndPose()
 
             rate.sleep()
 
@@ -136,10 +132,10 @@ class C_PiperRosNode(Node):
         self.arm_status_pub.publish(arm_status)
 
     def PublishArmJointAndGirpper(self):
-        # 赋值时间戳
+        # Assign timestamp
         self.joint_states.header.stamp = self.get_clock().now().to_msg()
         # Here, you can set the joint positions to any value you want
-        # 由于获取的原始数据是度为单位扩大了1000倍，因此要转为弧度需要先除以1000，再乘3.14/180，然后限制小数点位数为5位
+        # The raw data obtained is in degrees multiplied by 1000. To convert to radians, divide by 1000, multiply by π/180, and limit to 5 decimal places
         joint_0: float = (self.piper.GetArmJointMsgs().joint_state.joint_1 / 1000) * 0.017444
         joint_1: float = (self.piper.GetArmJointMsgs().joint_state.joint_2 / 1000) * 0.017444
         joint_2: float = (self.piper.GetArmJointMsgs().joint_state.joint_3 / 1000) * 0.017444
@@ -160,7 +156,7 @@ class C_PiperRosNode(Node):
         self.joint_pub.publish(self.joint_states)
 
     def PublishArmEndPose(self):
-        # 末端位姿
+        # End effector pose
         endpos = Pose()
         endpos.position.x = self.piper.GetArmEndPoseMsgs().end_pose.X_axis / 1000000
         endpos.position.y = self.piper.GetArmEndPoseMsgs().end_pose.Y_axis / 1000000
@@ -176,10 +172,10 @@ class C_PiperRosNode(Node):
         self.end_pose_pub.publish(endpos)
 
     def pos_callback(self, pos_data):
-        """机械臂末端位姿订阅回调函数
+        """Callback function for subscribing to the end effector pose
 
         Args:
-            pos_data (): 
+            pos_data (): The position data
         """
         self.get_logger().info(f"Received PosCmd:")
         self.get_logger().info(f"x: {pos_data.x}")
@@ -197,25 +193,24 @@ class C_PiperRosNode(Node):
         rx = round(pos_data.roll * 1000)
         ry = round(pos_data.pitch * 1000)
         rz = round(pos_data.yaw * 1000)
-        if(self.GetEnableFlag()):
+        if self.GetEnableFlag():
             self.piper.MotionCtrl_1(0x00, 0x00, 0x00)
             self.piper.MotionCtrl_2(0x01, 0x02, 50)
-            self.piper.EndPoseCtrl(x, y, z,
-                                   rx, ry, rz)
+            self.piper.EndPoseCtrl(x, y, z, rx, ry, rz)
             gripper = round(pos_data.gripper * 1000 * 1000)
-            if(pos_data.gripper > 80000):
+            if pos_data.gripper > 80000:
                 gripper = 80000
-            if(pos_data.gripper < 0):
+            if pos_data.gripper < 0:
                 gripper = 0
-            if(self.girpper_exist):
+            if self.girpper_exist:
                 self.piper.GripperCtrl(abs(gripper), 1000, 0x01, 0)
             self.piper.MotionCtrl_2(0x01, 0x00, 50)
 
     def joint_callback(self, joint_data):
-        """机械臂关节角回调函数
+        """Callback function for joint angles
 
         Args:
-            joint_data (): 
+            joint_data (): The joint data
         """
         factor = 57324.840764  # 1000*180/3.14
         factor1 = 57.32484
@@ -234,83 +229,76 @@ class C_PiperRosNode(Node):
         joint_4 = round(joint_data.position[4] * factor)
         joint_5 = round(joint_data.position[5] * factor)
         joint_6 = round(joint_data.position[6] * 1000 * 1000)
-        if(self.rviz_ctrl_flag):
+        if self.rviz_ctrl_flag:
             joint_6 = joint_6 * 2
-        if(joint_6 > 80000):
+        if joint_6 > 80000:
             joint_6 = 80000
-        if(joint_6 < 0):
+        if joint_6 < 0:
             joint_6 = 0
-        if(self.GetEnableFlag()):
-            # 设定电机速度
-            if(joint_data.velocity != []):
+        if self.GetEnableFlag():
+            # Set motor speed
+            if joint_data.velocity:
                 all_zeros = all(v == 0 for v in joint_data.velocity)
             else:
                 all_zeros = True
-            if(not all_zeros):
+            if not all_zeros:
                 lens = len(joint_data.velocity)
-                if(lens == 7):
+                if lens == 7:
                     vel_all = round(joint_data.velocity[6])
-                    if (vel_all > 100):
+                    if vel_all > 100:
                         vel_all = 100
-                    if (vel_all < 0):
+                    if vel_all < 0:
                         vel_all = 0
                     self.get_logger().info(f"vel_all: {vel_all}")
                     self.piper.MotionCtrl_2(0x01, 0x01, vel_all)
-                # elif(lens == 7):
-                #     # 遍历速度列表
-                #     for i, velocity in enumerate(joint_data.velocity):
-                #         if velocity > 0:  # 如果速度是正数
-                #             # 设置指定位置的关节速度为这个正数速度
-                #             # self.piper.SearchMotorMaxAngleSpdAccLimit(i+1,0x01)
-                #             # self.piper.MotorAngleLimitMaxSpdSet(i+1)
                 else:
                     self.piper.MotionCtrl_2(0x01, 0x01, 30)
             else:
                 self.piper.MotionCtrl_2(0x01, 0x01, 30)
             self.piper.JointCtrl(joint_0, joint_1, joint_2,
                                  joint_3, joint_4, joint_5)
-            if(self.girpper_exist):
-                if(len(joint_data.effort) == 7):
+            if self.girpper_exist:
+                if len(joint_data.effort) == 7:
                     gripper_effort = joint_data.effort[6]
-                    if (gripper_effort > 3):
+                    if gripper_effort > 3:
                         gripper_effort = 3
-                    if (gripper_effort < 0.5):
+                    if gripper_effort < 0.5:
                         gripper_effort = 0.5
                     self.get_logger().info(f"gripper_effort: {gripper_effort}")
                     gripper_effort = round(gripper_effort * 1000)
                     self.piper.GripperCtrl(abs(joint_6), gripper_effort, 0x01, 0)
-                # 默认1N
                 else:
                     self.piper.GripperCtrl(abs(joint_6), 1000, 0x01, 0)
 
     def enable_callback(self, enable_flag: Bool):
-        """机械臂使能回调函数
+        """Callback function for enabling the robotic arm
 
         Args:
-            enable_flag ():
+            enable_flag (): Boolean flag
         """
         self.get_logger().info(f"Received enable flag:")
         self.get_logger().info(f"enable_flag: {enable_flag.data}")
-        if(enable_flag.data):
+        if enable_flag.data:
             self.__enable_flag = True
             self.piper.EnableArm(7)
-            if(self.girpper_exist):
+            if self.girpper_exist:
                 self.piper.GripperCtrl(0, 1000, 0x01, 0)
         else:
             self.__enable_flag = False
             self.piper.DisableArm(7)
-            if(self.girpper_exist):
+            if self.girpper_exist:
                 self.piper.GripperCtrl(0, 1000, 0x00, 0)
 
     def handle_enable_service(self, req, resp):
-        self.get_logger().info(f"Received request:: {req.enable_request}")
+        """Handle enable service for the robotic arm"""
+        self.get_logger().info(f"Received request: {req.enable_request}")
         enable_flag = False
         loop_flag = False
-        # 设置超时时间（秒）
+        # Set timeout duration (seconds)
         timeout = 5
-        # 记录进入循环前的时间
+        # Record the time before entering the loop
         start_time = time.time()
-        while not (loop_flag):
+        while not loop_flag:
             elapsed_time = time.time() - start_time
             self.get_logger().info(f"--------------------")
             enable_list = []
@@ -320,7 +308,8 @@ class C_PiperRosNode(Node):
             enable_list.append(self.piper.GetArmLowSpdInfoMsgs().motor_4.foc_status.driver_enable_status)
             enable_list.append(self.piper.GetArmLowSpdInfoMsgs().motor_5.foc_status.driver_enable_status)
             enable_list.append(self.piper.GetArmLowSpdInfoMsgs().motor_6.foc_status.driver_enable_status)
-            if(req.enable_request):
+
+            if req.enable_request:
                 enable_flag = all(enable_list)
                 self.piper.EnableArm(7)
                 self.piper.GripperCtrl(0, 1000, 0x01, 0)
@@ -328,22 +317,27 @@ class C_PiperRosNode(Node):
                 enable_flag = any(enable_list)
                 self.piper.DisableArm(7)
                 self.piper.GripperCtrl(0, 1000, 0x02, 0)
-            self.get_logger().info(f"使能状态: {enable_flag}")
+
+            self.get_logger().info(f"Enable status: {enable_flag}")
             self.__enable_flag = enable_flag
             self.get_logger().info(f"--------------------")
-            if(enable_flag == req.enable_request):
+
+            if enable_flag == req.enable_request:
                 loop_flag = True
                 enable_flag = True
             else:
                 loop_flag = False
                 enable_flag = False
-            # 检查是否超过超时时间
+
+            # Check if timeout duration has been exceeded
             if elapsed_time > timeout:
-                self.get_logger().info(f"超时....")
+                self.get_logger().info(f"Timeout...")
                 enable_flag = False
                 loop_flag = True
                 break
+
             time.sleep(0.5)
+
         resp.enable_response = enable_flag
         self.get_logger().info(f"Returning response: {resp.enable_response}")
         return resp

@@ -1,26 +1,25 @@
 # piper_launch.py
 
 from launch import LaunchDescription
-# from launch_ros.actions import Node, IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch.actions import IncludeLaunchDescription  # 正确的导入方式
-from launch_ros.actions import Node  # 保持不变
+from launch.actions import IncludeLaunchDescription  # Correct import method
+from launch_ros.actions import Node  # Remains unchanged
 from ament_index_python.packages import get_package_share_directory
 
 import os
 
 
 def generate_launch_description():
-    # 获取piper_description包的路径
+    # Get the path to the piper_description package
     piper_description_path = os.path.join(
         get_package_share_directory('piper_description'),
         'launch',
         'display_xacro.launch.py'
     )
 
-    # 定义launch参数
+    # Define launch parameters
     can_port_arg = DeclareLaunchArgument(
         'can_port',
         default_value='can0',
@@ -33,7 +32,7 @@ def generate_launch_description():
         description='Enable robot arm automatically'
     )
 
-    # 包含 display_xacro.launch.py
+    # Include display_xacro.launch.py
     display_xacro_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(piper_description_path)
     )
@@ -47,10 +46,10 @@ def generate_launch_description():
     girpper_exist_arg = DeclareLaunchArgument(
         'girpper_exist',
         default_value='true',
-        description='gripper'
+        description='Gripper existence flag'
     )
 
-    # 定义机械臂节点
+    # Define the robot arm node
     piper_ctrl_node = Node(
         package='piper',
         executable='piper_single_ctrl',
@@ -67,7 +66,7 @@ def generate_launch_description():
         ]
     )
 
-    # 返回LaunchDescription对象，包含以上所有元素
+    # Return the LaunchDescription object containing all the above elements
     return LaunchDescription([
         can_port_arg,
         auto_enable_arg,
