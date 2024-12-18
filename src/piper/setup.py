@@ -2,6 +2,7 @@ from setuptools import find_packages, setup
 import glob
 import sys
 import os
+from glob import glob
 
 package_name = 'piper'
 
@@ -15,11 +16,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-
-        # 安装 launch 文件
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
-        # 安装其他文件，如参数文件
-        # (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
