@@ -430,5 +430,5 @@ sudo apt install ros-$ROS_DISTRO-robot-state-publisher
 5. 
 
 ```shell
-sudo apt install ros-foxy-xacro
+sudo apt install ros-humble-xacro
 ```
