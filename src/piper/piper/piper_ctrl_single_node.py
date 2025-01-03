@@ -7,6 +7,9 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
 import time
 import threading
+import argparse
+import math
+from piper_sdk import *
 from piper_sdk import C_PiperInterface
 from piper_msgs.msg import PiperStatusMsg, PosCmd
 from piper_msgs.srv import Enable
@@ -165,6 +168,9 @@ class PiperRosNode(Node):
         roll = self.piper.GetArmEndPoseMsgs().end_pose.RX_axis / 1000
         pitch = self.piper.GetArmEndPoseMsgs().end_pose.RY_axis / 1000
         yaw = self.piper.GetArmEndPoseMsgs().end_pose.RZ_axis / 1000
+        roll = math.radians(roll)
+        pitch = math.radians(pitch)
+        yaw = math.radians(yaw)
         quaternion = R.from_euler('xyz', [roll, pitch, yaw]).as_quat()
         endpos.orientation.x = quaternion[0]
         endpos.orientation.y = quaternion[1]
@@ -178,6 +184,7 @@ class PiperRosNode(Node):
         Args:
             pos_data (): The position data
         """
+        factor = 180 / 3.1415926
         self.get_logger().info(f"Received PosCmd:")
         self.get_logger().info(f"x: {pos_data.x}")
         self.get_logger().info(f"y: {pos_data.y}")
@@ -188,13 +195,13 @@ class PiperRosNode(Node):
         self.get_logger().info(f"gripper: {pos_data.gripper}")
         self.get_logger().info(f"mode1: {pos_data.mode1}")
         self.get_logger().info(f"mode2: {pos_data.mode2}")
-        x = round(pos_data.x * 1000)
-        y = round(pos_data.y * 1000)
-        z = round(pos_data.z * 1000)
-        rx = round(pos_data.roll * 1000)
-        ry = round(pos_data.pitch * 1000)
-        rz = round(pos_data.yaw * 1000)
-        if self.GetEnableFlag():
+        x = round(pos_data.x*1000) * 1000
+        y = round(pos_data.y*1000) * 1000
+        z = round(pos_data.z*1000) * 1000
+        rx = round(pos_data.roll*1000*factor)
+        ry = round(pos_data.pitch*1000*factor)
+        rz = round(pos_data.yaw*1000*factor)
+        if(self.GetEnableFlag()):
             self.piper.MotionCtrl_1(0x00, 0x00, 0x00)
             self.piper.MotionCtrl_2(0x01, 0x02, 50)
             self.piper.EndPoseCtrl(x, y, z, rx, ry, rz)
@@ -221,20 +228,23 @@ class PiperRosNode(Node):
         self.get_logger().info(f"joint_3: {joint_data.position[3]}")
         self.get_logger().info(f"joint_4: {joint_data.position[4]}")
         self.get_logger().info(f"joint_5: {joint_data.position[5]}")
-        self.get_logger().info(f"joint_6: {joint_data.position[6]}")
-        joint_0 = round(joint_data.position[0] * factor)
-        joint_1 = round(joint_data.position[1] * factor)
-        joint_2 = round(joint_data.position[2] * factor)
-        joint_3 = round(joint_data.position[3] * factor)
-        joint_4 = round(joint_data.position[4] * factor)
-        joint_5 = round(joint_data.position[5] * factor)
-        joint_6 = round(joint_data.position[6] * 1000 * 1000)
-        if self.rviz_ctrl_flag:
-            joint_6 = joint_6 * 2
-        joint_6 = clip(joint_6, 0, 80000)
-        if self.GetEnableFlag():
-            # Set motor speed
-            if joint_data.velocity:
+
+        joint_0 = round(joint_data.position[0]*factor)
+        joint_1 = round(joint_data.position[1]*factor)
+        joint_2 = round(joint_data.position[2]*factor)
+        joint_3 = round(joint_data.position[3]*factor)
+        joint_4 = round(joint_data.position[4]*factor)
+        joint_5 = round(joint_data.position[5]*factor)
+        if(len(joint_data.position) >= 7):
+            self.get_logger().info(f"joint_6: {joint_data.position[6]}")
+            joint_6 = round(joint_data.position[6]*1000*1000)
+            if(self.rviz_ctrl_flag):
+                joint_6 = joint_6 * 2
+            joint_6 = clip(joint_6, 0, 80000)
+        else: joint_6 = 0
+        if(self.GetEnableFlag()):
+            # 设定电机速度
+            if(joint_data.velocity != []):
                 all_zeros = all(v == 0 for v in joint_data.velocity)
             else:
                 all_zeros = True
@@ -251,7 +261,7 @@ class PiperRosNode(Node):
             self.piper.JointCtrl(joint_0, joint_1, joint_2,
                                  joint_3, joint_4, joint_5)
             if self.gripper_exist:
-                if len(joint_data.effort) == 7:
+                if len(joint_data.effort) >= 7:
                     gripper_effort = clip(joint_data.effort[6], 0.5, 3)
                     self.get_logger().info(f"gripper_effort: {gripper_effort}")
                     gripper_effort = round(gripper_effort * 1000)

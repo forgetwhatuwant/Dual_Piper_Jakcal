@@ -13,3 +13,5 @@ src/piper/backup
 *.zip
 *.tar
 analytical_solution
+oculus_reader
+oculus_reader/oculus_reader
