@@ -195,7 +195,11 @@ Publish joint messages
 
 Note: The robotic arm will lift. Please ensure there are no obstacles within its working range.
 
-The robotic arm will move at 10% of the default speed, and the gripper torque is set to 0.5N. The position is as follows:
+The robotic arm will move at 10% of the default speed, and the gripper torque is set to 0.5N. 
+
+The speed range is limited from 1 to 100. Any value less than 1 will be treated as 1.
+
+The position is as follows:
 
 ```shell
 ros2 topic pub /joint_states sensor_msgs/msg/JointState "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'piper_single'}, name: ['joint1', 'joint2','joint3','joint4','joint5','joint6','joint7'], position: [0.2,0.2,-0.2,0.3,-0.2,0.5,0.01], velocity: [0,0,0,0,0,0,10], effort: [0,0,0,0,0,0,0.5]}"

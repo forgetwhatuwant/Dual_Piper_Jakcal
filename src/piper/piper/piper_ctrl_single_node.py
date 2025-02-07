@@ -39,9 +39,9 @@ class PiperRosNode(Node):
         self.get_logger().info(f"gripper_exist is {self.gripper_exist}")
         self.get_logger().info(f"rviz_ctrl_flag is {self.rviz_ctrl_flag}")
         # Publishers
-        self.joint_pub = self.create_publisher(JointState, 'joint_states_single', 10)
-        self.arm_status_pub = self.create_publisher(PiperStatusMsg, 'arm_status', 10)
-        self.end_pose_pub = self.create_publisher(Pose, 'end_pose', 10)
+        self.joint_pub = self.create_publisher(JointState, 'joint_states_single', 1)
+        self.arm_status_pub = self.create_publisher(PiperStatusMsg, 'arm_status', 1)
+        self.end_pose_pub = self.create_publisher(Pose, 'end_pose', 1)
         # Service
         self.motor_srv = self.create_service(Enable, 'enable_srv', self.handle_enable_service)
         # Joint
@@ -57,9 +57,9 @@ class PiperRosNode(Node):
         self.piper.ConnectPort()
 
         # Start subscription thread
-        self.create_subscription(PosCmd, 'pos_cmd', self.pos_callback, 10)
-        self.create_subscription(JointState, 'joint_ctrl_single', self.joint_callback, 10)
-        self.create_subscription(Bool, 'enable_flag', self.enable_callback, 10)
+        self.create_subscription(PosCmd, 'pos_cmd', self.pos_callback, 1)
+        self.create_subscription(JointState, 'joint_ctrl_single', self.joint_callback, 1)
+        self.create_subscription(Bool, 'enable_flag', self.enable_callback, 1)
 
         self.publisher_thread = threading.Thread(target=self.publish_thread)
         self.publisher_thread.start()
@@ -251,7 +251,7 @@ class PiperRosNode(Node):
             if not all_zeros:
                 lens = len(joint_data.velocity)
                 if lens == 7:
-                    vel_all = clip(round(joint_data.velocity[6]), 0, 100)
+                    vel_all = clip(round(joint_data.velocity[6]), 1, 100)
                     self.get_logger().info(f"vel_all: {vel_all}")
                     self.piper.MotionCtrl_2(0x01, 0x01, vel_all)
                 else:
@@ -264,7 +264,11 @@ class PiperRosNode(Node):
                 if len(joint_data.effort) >= 7:
                     gripper_effort = clip(joint_data.effort[6], 0.5, 3)
                     self.get_logger().info(f"gripper_effort: {gripper_effort}")
-                    gripper_effort = round(gripper_effort * 1000)
+                    if not math.isnan(gripper_effort):
+                        gripper_effort = round(gripper_effort * 1000)
+                    else:
+                        self.get_logger().warning("Gripper effort is NaN, using default value.")
+                        gripper_effort = 0  # You can set a default value in case of NaN
                     self.piper.GripperCtrl(abs(joint_6), gripper_effort, 0x01, 0)
                 else:
                     self.piper.GripperCtrl(abs(joint_6), 1000, 0x01, 0)

@@ -194,7 +194,11 @@ ros2 topic pub /enable_flag std_msgs/msg/Bool data:\ false\
 
 注意，机械臂会抬起，请确保机械臂工作范围内无障碍
 
-机械臂会以默认速度的百分之10运动，夹爪力矩设定0.5N，位置如下
+机械臂会以默认速度的百分之10运动，夹爪力矩设定0.5N
+
+速度范围限制为1-100,小于1时视为1
+
+位置如下
 
 ```shell
 ros2 topic pub /joint_states sensor_msgs/msg/JointState "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'piper_single'}, name: ['joint1', 'joint2','joint3','joint4','joint5','joint6','joint7'], position: [0.2,0.2,-0.2,0.3,-0.2,0.5,0.01], velocity: [0,0,0,0,0,0,10], effort: [0,0,0,0,0,0,0.5]}"
