@@ -222,29 +222,28 @@ class PiperRosNode(Node):
         """
         factor = 57324.840764  # 1000*180/3.14
         self.get_logger().info(f"Received Joint States:")
-        self.get_logger().info(f"joint_0: {joint_data.position[0]}")
-        self.get_logger().info(f"joint_1: {joint_data.position[1]}")
-        self.get_logger().info(f"joint_2: {joint_data.position[2]}")
-        self.get_logger().info(f"joint_3: {joint_data.position[3]}")
-        self.get_logger().info(f"joint_4: {joint_data.position[4]}")
-        self.get_logger().info(f"joint_5: {joint_data.position[5]}")
 
-        joint_0 = round(joint_data.position[0]*factor)
-        joint_1 = round(joint_data.position[1]*factor)
-        joint_2 = round(joint_data.position[2]*factor)
-        joint_3 = round(joint_data.position[3]*factor)
-        joint_4 = round(joint_data.position[4]*factor)
-        joint_5 = round(joint_data.position[5]*factor)
-        if(len(joint_data.position) >= 7):
-            self.get_logger().info(f"joint_6: {joint_data.position[6]}")
-            joint_6 = round(joint_data.position[6]*1000*1000)
-            if(self.rviz_ctrl_flag):
+        # 创建一个字典来存储关节名称与位置的映射
+        joint_positions = {}
+
+        # 遍历joint_data.name来映射位置
+        for idx, joint_name in enumerate(joint_data.name):
+            self.get_logger().info(f"{joint_name}: {joint_data.position[idx]}")
+            joint_positions[joint_name] = round(joint_data.position[idx] * factor)
+        
+        # 获取第7个关节的位置
+        if len(joint_data.position) >= 7:
+            self.get_logger().info(f"joint_7: {joint_data.position[6]}")
+            joint_6 = round(joint_data.position[6] * 1000 * 1000)
+            if self.rviz_ctrl_flag:
                 joint_6 = joint_6 * 2
-            joint_6 = clip(joint_6, 0, 80000)
-        else: joint_6 = 0
-        if(self.GetEnableFlag()):
-            # 设定电机速度
-            if(joint_data.velocity != []):
+            joint_7 = clip(joint_6, 0, 80000)
+        else:
+            joint_7 = 0
+
+        # 控制电机速度
+        if self.GetEnableFlag():
+            if joint_data.velocity != []:
                 all_zeros = all(v == 0 for v in joint_data.velocity)
             else:
                 all_zeros = True
@@ -258,8 +257,18 @@ class PiperRosNode(Node):
                     self.piper.MotionCtrl_2(0x01, 0x01, 30)
             else:
                 self.piper.MotionCtrl_2(0x01, 0x01, 30)
-            self.piper.JointCtrl(joint_0, joint_1, joint_2,
-                                 joint_3, joint_4, joint_5)
+
+            # 使用关节名称来动态控制关节
+            self.piper.JointCtrl(
+                joint_positions.get('joint1', 0),
+                joint_positions.get('joint2', 0),
+                joint_positions.get('joint3', 0),
+                joint_positions.get('joint4', 0),
+                joint_positions.get('joint5', 0),
+                joint_positions.get('joint6', 0)
+            )
+
+            # 夹爪控制
             if self.gripper_exist:
                 if len(joint_data.effort) >= 7:
                     gripper_effort = clip(joint_data.effort[6], 0.5, 3)
@@ -268,10 +277,11 @@ class PiperRosNode(Node):
                         gripper_effort = round(gripper_effort * 1000)
                     else:
                         self.get_logger().warning("Gripper effort is NaN, using default value.")
-                        gripper_effort = 0  # You can set a default value in case of NaN
+                        gripper_effort = 0  # 设置默认值
                     self.piper.GripperCtrl(abs(joint_6), gripper_effort, 0x01, 0)
                 else:
                     self.piper.GripperCtrl(abs(joint_6), 1000, 0x01, 0)
+
 
     def enable_callback(self, enable_flag: Bool):
         """Callback function for enabling the robotic arm
