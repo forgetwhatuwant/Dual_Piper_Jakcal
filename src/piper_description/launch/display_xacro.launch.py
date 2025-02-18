@@ -21,7 +21,7 @@ def generate_launch_description():
     
     # 使用指定的RViz配置文件路径
     # default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf.rviz')
-    specific_rviz_config_path = os.path.join(pkg_share, 'rviz/rviz.rviz')
+    specific_rviz_config_path = os.path.join(pkg_share, 'rviz/piper_ctrl.rviz')
     print(specific_rviz_config_path)  # 打印以确保路径正确
 
     # Declare arguments
