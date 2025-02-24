@@ -221,25 +221,23 @@ class PiperRosNode(Node):
             joint_data (): The joint data
         """
         factor = 57324.840764  # 1000*180/3.14
-        self.get_logger().info(f"Received Joint States:")
+        # self.get_logger().info(f"Received Joint States:")
 
         # 创建一个字典来存储关节名称与位置的映射
         joint_positions = {}
+        joint_6 = 0
 
         # 遍历joint_data.name来映射位置
         for idx, joint_name in enumerate(joint_data.name):
-            self.get_logger().info(f"{joint_name}: {joint_data.position[idx]}")
+            # self.get_logger().info(f"{joint_name}: {joint_data.position[idx]}")
             joint_positions[joint_name] = round(joint_data.position[idx] * factor)
         
         # 获取第7个关节的位置
         if len(joint_data.position) >= 7:
-            self.get_logger().info(f"joint_7: {joint_data.position[6]}")
+            # self.get_logger().info(f"joint_7: {joint_data.position[6]}")
             joint_6 = round(joint_data.position[6] * 1000 * 1000)
             if self.rviz_ctrl_flag:
                 joint_6 = joint_6 * 2
-            joint_7 = clip(joint_6, 0, 80000)
-        else:
-            joint_7 = 0
 
         # 控制电机速度
         if self.GetEnableFlag():
@@ -272,11 +270,11 @@ class PiperRosNode(Node):
             if self.gripper_exist:
                 if len(joint_data.effort) >= 7:
                     gripper_effort = clip(joint_data.effort[6], 0.5, 3)
-                    self.get_logger().info(f"gripper_effort: {gripper_effort}")
+                    # self.get_logger().info(f"gripper_effort: {gripper_effort}")
                     if not math.isnan(gripper_effort):
                         gripper_effort = round(gripper_effort * 1000)
                     else:
-                        self.get_logger().warning("Gripper effort is NaN, using default value.")
+                        # self.get_logger().warning("Gripper effort is NaN, using default value.")
                         gripper_effort = 0  # 设置默认值
                     self.piper.GripperCtrl(abs(joint_6), gripper_effort, 0x01, 0)
                 else:
