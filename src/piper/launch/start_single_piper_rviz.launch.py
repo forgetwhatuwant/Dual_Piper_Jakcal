@@ -16,6 +16,7 @@ def generate_launch_description():
     piper_description_path = os.path.join(
         get_package_share_directory('piper_description'),
         'launch',
+        'piper_with_gripper',
         'display_xacro.launch.py'
     )
 
