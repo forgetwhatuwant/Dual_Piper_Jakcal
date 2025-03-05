@@ -195,7 +195,7 @@ Publish joint messages
 
 Note: The robotic arm will lift. Please ensure there are no obstacles within its working range.
 
-The robotic arm will move at 10% of the default speed, and the gripper torque is set to 0.5N. 
+The robotic arm will move at 10% of the default speed, and the gripper torque is set to 0.5N.
 
 The speed range is limited from 1 to 100. Any value less than 1 will be treated as 1.
 
@@ -317,23 +317,12 @@ int32 mode1
 int32 mode2
 ```
 
-## Simulation
+## MoveIt Planner and Simulation Environment
 
-open rviz
-
-```shell
-ros2 launch piper_description display_xacro.launch.py
-```
-
-After running, the `/joint_states` topic will be published, and you can view it using `ros2 topic echo /joint_states`.
-
-At the same time, two windows will pop up as shown below. The slider values correspond to the values of `/joint_states`, and dragging the sliders will change those values. The model in RViz will also move accordingly.
-
-![ ](./asserts/pictures/rviz_display.jpg)
-
-### gazebo
-
-coming...
+| Description | Documentation |
+|---|---|
+| MoveIt | [MoveIt README](src/piper_moveit/README(EN).md) |
+| Simulation | [Simulation README](src/piper_sim/README(EN).md) |
 
 ## Q&A
 

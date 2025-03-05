@@ -310,23 +310,12 @@ int32 mode1
 int32 mode2
 ```
 
-## 4 使用仿真
+## 4 Moveit规划器和仿真环境
 
-打开rviz
-
-```shell
-ros2 launch piper_description display_xacro.launch.py
-```
-
-运行后会发布`/joint_states`,可以通过`ros2 topic echo /joint_states` 查看
-
-同时会弹出两个页面如下，滑动条数值对应`/joint_states`数值，拖动滑动条可以改变其数值，rviz中的模型也会随动
-
-![ ](./asserts/pictures/rviz_display.jpg)
-
-### 4.1 gazebo
-
-coming...
+|说明 |文档|
+|---|---|
+|Moveit|[Moveit README](src/piper_moveit/README.md)|
+|仿真|[仿真 README](src/piper_sim/README.md)|
 
 ## 5 Q&A
 

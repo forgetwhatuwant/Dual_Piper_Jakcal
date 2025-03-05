@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(piper_description)
+project(piper_gazebo)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -21,7 +21,7 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 install(
-  DIRECTORY launch  meshes rviz urdf mujoco_model
+  DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
 )
 if(BUILD_TESTING)
