@@ -50,7 +50,7 @@ bash can_activate.sh can0 1000000
 开启控制节点
 
 ```bash
-ros2 launch piper start_single_piper.launch.py
+ros2 launch piper start_single_piper.launch.py rviz_ctrl_flag:=true
 ```
 
 ### 3.2 moveit2控制
@@ -119,6 +119,8 @@ ros2 launch piper_no_gripper_moveit piper_moveit.launch.py
 #### 5.2.2 运行mujoco
 
 见 [piper_mujoco](../piper_sim/README.md#2-mujoco仿真)
+
+注：**关闭可以使用ctrl+C+\\**
 
 ## 5 可能遇见的问题
 

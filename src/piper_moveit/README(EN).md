@@ -50,7 +50,7 @@ bash can_activate.sh can0 1000000
 Start the control node:
 
 ```bash
-ros2 launch piper start_single_piper.launch.py
+ros2 launch piper start_single_piper.launch.py rviz_ctrl_flag:=true
 ```
 
 ### 3.2 Moveit2 Control
@@ -119,6 +119,8 @@ Same as [3.2 Moveit2 Control](#32-moveit2-control)
 #### 4.2.2 Run Mujoco
 
 See [piper_mujoco](../piper_sim/README(EN).md#2-mujoco-simulation)
+
+Note: **You can close it using Ctrl+C+\\**
 
 ## 5 Potential Issues
 
