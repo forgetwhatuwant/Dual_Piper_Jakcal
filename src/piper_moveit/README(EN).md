@@ -42,7 +42,7 @@ source ~/.bashrc
 After configuring [piper_ros](../../README.MD#1-Installation-Method):
 
 ```bash
-cd ~/Piper_ros
+cd ~/piper_ros
 source install/setup.bash
 bash can_activate.sh can0 1000000
 ```
@@ -58,7 +58,7 @@ ros2 launch piper start_single_piper.launch.py rviz_ctrl_flag:=true
 Start Moveit2:
 
 ```bash
-cd ~/Piper_ros
+cd ~/piper_ros
 conda deactivate  # Remove this line if Conda is not installed
 source install/setup.bash
 ```
@@ -92,7 +92,7 @@ See [piper_gazebo](../piper_sim/README(EN).md#1-gazebo-simulation)
 #### 4.1.2 Moveit Control
 
 ```bash
-cd ~/Piper_ros
+cd ~/piper_ros
 source install/setup.bash
 ```
 

@@ -15,7 +15,7 @@
 Run the Gazebo simulation:
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -111,7 +111,7 @@ ros2 launch piper_gazebo piper_no_gripper_gazebo.launch.py
 Run the Mujoco simulation:
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -124,7 +124,7 @@ ros2 run piper_mujoco piper_mujoco_ctrl.py
 To control the robot arm with the `rviz_gui` (run in a new terminal):
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -137,7 +137,7 @@ ros2 launch piper_description display_urdf.launch.py
 Run the Mujoco simulation:
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -148,7 +148,7 @@ ros2 run piper_mujoco piper_no_gripper_mujoco_ctrl.py
 To control the robot arm with `rviz_gui` (run in a new terminal):
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 

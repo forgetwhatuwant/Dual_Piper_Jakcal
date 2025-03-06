@@ -42,7 +42,7 @@ source ~/.bashrc
 按照[piper_ros](../../README.MD#1-安装方法)配置完后
 
 ```bash
-cd ~/Piper_ros
+cd ~/piper_ros
 source install/setup.bash
 bash can_activate.sh can0 1000000
 ```
@@ -58,7 +58,7 @@ ros2 launch piper start_single_piper.launch.py rviz_ctrl_flag:=true
 开启moveit2
 
 ```bash
-cd ~/Piper_ros
+cd ~/piper_ros
 conda deactivate # 若无conda环境可去除此行
 source install/setup.bash
 ```
@@ -92,7 +92,7 @@ ros2 launch piper_with_gripper_moveit demo.launch.py
 #### 5.1.2 moveit控制
 
 ```bash
-cd ~/Piper_ros
+cd ~/piper_ros
 source install/setup.bash
 ```
 

@@ -15,7 +15,7 @@
 gazebo仿真运行
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -111,7 +111,7 @@ print(sim.data.qpos)
 mujoco仿真运行
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -124,7 +124,7 @@ ros2 run piper_mujoco piper_mujoco_ctrl.py
 通过rviz_gui控制有夹爪机械臂(新终端运行)
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -137,7 +137,7 @@ ros2 launch piper_description display_urdf.launch.py
 mujoco仿真运行
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
@@ -148,7 +148,7 @@ ros2 run piper_mujoco piper_no_gripper_mujoco_ctrl.py
 通过rviz_gui控制无夹爪机械臂(新终端运行)
 
 ```bash
-cd Piper_ros
+cd piper_ros
 source install/setup.bash
 ```
 
