@@ -50,7 +50,7 @@ bash can_activate.sh can0 1000000
 Start the control node:
 
 ```bash
-ros2 launch piper start_single_piper.launch.py rviz_ctrl_flag:=true
+ros2 launch piper start_single_piper.launch.py gripper_val_mutiple:=2
 ```
 
 ### 3.2 Moveit2 Control

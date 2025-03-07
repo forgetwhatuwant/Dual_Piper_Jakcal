@@ -50,7 +50,7 @@ bash can_activate.sh can0 1000000
 开启控制节点
 
 ```bash
-ros2 launch piper start_single_piper.launch.py rviz_ctrl_flag:=true
+ros2 launch piper start_single_piper.launch.py gripper_val_mutiple:=2
 ```
 
 ### 3.2 moveit2控制
