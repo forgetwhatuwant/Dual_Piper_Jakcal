@@ -27,17 +27,18 @@ class PiperRosNode(Node):
         self.declare_parameter('can_port', 'can0')
         self.declare_parameter('auto_enable', False)
         self.declare_parameter('gripper_exist', True)
-        self.declare_parameter('rviz_ctrl_flag', False)
+        self.declare_parameter('gripper_val_mutiple', 1)
 
         self.can_port = self.get_parameter('can_port').get_parameter_value().string_value
         self.auto_enable = self.get_parameter('auto_enable').get_parameter_value().bool_value
         self.gripper_exist = self.get_parameter('gripper_exist').get_parameter_value().bool_value
-        self.rviz_ctrl_flag = self.get_parameter('rviz_ctrl_flag').get_parameter_value().bool_value
+        self.gripper_val_mutiple = self.get_parameter('gripper_val_mutiple').get_parameter_value().integer_value
+        self.gripper_val_mutiple = max(0, min(self.gripper_val_mutiple, 10))
 
         self.get_logger().info(f"can_port is {self.can_port}")
         self.get_logger().info(f"auto_enable is {self.auto_enable}")
         self.get_logger().info(f"gripper_exist is {self.gripper_exist}")
-        self.get_logger().info(f"rviz_ctrl_flag is {self.rviz_ctrl_flag}")
+        self.get_logger().info(f"gripper_val_mutiple is {self.gripper_val_mutiple}")
         # Publishers
         self.joint_pub = self.create_publisher(JointState, 'joint_states_single', 1)
         self.arm_status_pub = self.create_publisher(PiperStatusMsg, 'arm_status', 1)
@@ -236,8 +237,7 @@ class PiperRosNode(Node):
         if len(joint_data.position) >= 7:
             # self.get_logger().info(f"joint_7: {joint_data.position[6]}")
             joint_6 = round(joint_data.position[6] * 1000 * 1000)
-            if self.rviz_ctrl_flag:
-                joint_6 = joint_6 * 2
+            joint_6 = joint_6 * self.gripper_val_mutiple
 
         # 控制电机速度
         if self.GetEnableFlag():

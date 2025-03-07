@@ -49,6 +49,12 @@ def generate_launch_description():
         default_value='true',
         description='Gripper existence flag'
     )
+    
+    gripper_val_mutiple_arg = DeclareLaunchArgument(
+        'gripper_val_mutiple',
+        default_value='2',
+        description='gripper'
+    )
 
     # Define the robot arm node
     piper_ctrl_node = Node(
@@ -59,7 +65,7 @@ def generate_launch_description():
         parameters=[
             {'can_port': LaunchConfiguration('can_port')},
             {'auto_enable': LaunchConfiguration('auto_enable')},
-            {'rviz_ctrl_flag': LaunchConfiguration('rviz_ctrl_flag')},
+            {'gripper_val_mutiple': LaunchConfiguration('gripper_val_mutiple')},
             {'gripper_exist': LaunchConfiguration('gripper_exist')}
         ],
         remappings=[
@@ -72,7 +78,7 @@ def generate_launch_description():
         can_port_arg,
         auto_enable_arg,
         display_xacro_launch,
-        rviz_ctrl_flag_arg,
         gripper_exist_arg,
+        gripper_val_mutiple_arg,
         piper_ctrl_node
     ])
