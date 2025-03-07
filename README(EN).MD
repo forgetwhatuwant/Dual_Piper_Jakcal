@@ -136,7 +136,10 @@ auto_enable: Whether to automatically enable the system. If True, the system wil
 gripper_exist: Whether there is an end gripper. If True, it means there is an end gripper and the gripper control will be turned on.
 
 rviz_ctrl_flag: Whether to use RViz to send joint angle messages. If True, the system will receive joint angle messages sent by rViz.
-# Since the joint 7 range in RViz is [0,0.04], but the actual gripper travel is 0.08m, joint 7 values sent by RViz will be multiplied by 2 when controlling the gripper.
+
+gripper_val_mutiple: Set the gripper control multiplier.  
+
+# Since the range of joint7 in RViz is [0, 0.04], while the actual gripper travel is 0.08m, the gripper needs to be set to twice the value in RViz to control the real gripper correctly.
 ```
 
 There are two launch files for starting the single-arm robot: `start_single_piper_rviz.launch.py` and `start_single_piper.launch.py`.
@@ -147,9 +150,9 @@ Start the control node.
 
 ```shell
 # start the node
-ros2 run piper piper_single_ctrl --ros-args -p can_port:=can0 -p auto_enable:=false -p gripper_exist:=true -p rviz_ctrl_flag:=true
+ros2 run piper piper_single_ctrl --ros-args -p can_port:=can0 -p auto_enable:=false -p gripper_exist:=true -p gripper_val_mutiple:=2
 # start the launch
-ros2 launch piper start_single_piper.launch.py can_port:=can0 auto_enable:=false gripper_exist:=false rviz_ctrl_flag:=true
+ros2 launch piper start_single_piper.launch.py can_port:=can0 auto_enable:=false gripper_exist:=false gripper_val_mutiple:=2
 # Or,the node can be started with default parameters
 ros2 launch piper start_single_piper.launch.py
 # You can also use RViz to enable control by adjusting the parameters as described above.

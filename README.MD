@@ -135,7 +135,8 @@ auto_enable:是否自动使能，True则开启程序就自动使能
 # 若上次启动程序机械臂状态为失能，则中断程序后再启动节点，机械臂仍为失能
 gripper_exist:是否有末端夹爪，True则说明有末端夹爪，会开启夹爪控制
 rviz_ctrl_flag:是否使用rviz来发送关节角消息，True则接收rviz发送的关节角消息
-#由于rviz中的joint7范围是[0,0.04]，而真实夹爪行程为0.08m，打开rviz控制后会将rviz发出的joint7乘2倍
+gripper_val_mutiple:设置夹爪控制倍数
+# 由于rviz中的joint7范围是[0,0.04]，而真实夹爪行程为0.08m，打开rviz控制真实夹爪需要设置夹爪二倍
 ```
 
 有两个启动单臂的launch文件`start_single_piper_rviz.launch.py` 和 `start_single_piper.launch.py`
@@ -146,9 +147,9 @@ rviz_ctrl_flag:是否使用rviz来发送关节角消息，True则接收rviz发�
 
 ```shell
 # 启动节点
-ros2 run piper piper_single_ctrl --ros-args -p can_port:=can0 -p auto_enable:=false -p gripper_exist:=true -p rviz_ctrl_flag:=true
+ros2 run piper piper_single_ctrl --ros-args -p can_port:=can0 -p auto_enable:=false -p gripper_exist:=true -p gripper_val_mutiple:=2
 # 启动launch
-ros2 launch piper start_single_piper.launch.py can_port:=can0 auto_enable:=false gripper_exist:=false rviz_ctrl_flag:=true
+ros2 launch piper start_single_piper.launch.py can_port:=can0 auto_enable:=false gripper_exist:=false gripper_val_mutiple:=2
 # 或，会以默认参数运行
 ros2 launch piper start_single_piper.launch.py
 # 也可以用rviz开启控制,需要更改的参数如上
