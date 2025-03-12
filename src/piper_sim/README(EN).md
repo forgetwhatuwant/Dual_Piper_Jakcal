@@ -10,6 +10,13 @@
 
 ## 1 Gazebo Simulation
 
+### 0 Environment Setup
+
+```bash
+sudo apt update
+sudo apt install gazebo ros-humble-gazebo-ros-pkgs ros-humble-gazebo-ros2-control ros-humble-ros2-control ros-humble-ros2-controllers
+```
+
 ### 1.1 Piper Gazebo Simulation (With Gripper)
 
 Run the Gazebo simulation:

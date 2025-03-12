@@ -10,6 +10,13 @@
 
 ## 1 gazebo仿真
 
+### 0 环境配置
+
+```bash
+sudo apt update
+sudo apt install gazebo ros-humble-gazebo-ros-pkgs ros-humble-gazebo-ros2-control ros-humble-ros2-control ros-humble-ros2-controllers
+```
+
 ### 1.1 piper gazebo仿真(有夹爪)
 
 gazebo仿真运行
