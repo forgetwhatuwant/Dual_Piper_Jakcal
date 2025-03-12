@@ -4,6 +4,8 @@
 
 [EN](README(EN).MD)
 
+python_version >= "3.10"
+
 Test:
 
 |PYTHON |STATE|

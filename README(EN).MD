@@ -4,6 +4,8 @@
 
 ![ubuntu](https://img.shields.io/badge/Ubuntu-22.04-orange.svg)
 
+python_version >= "3.10"
+
 Test:
 
 |PYTHON |STATE|
