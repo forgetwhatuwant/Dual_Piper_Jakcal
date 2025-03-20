@@ -41,6 +41,7 @@ class PiperRosNode(Node):
         self.get_logger().info(f"gripper_val_mutiple is {self.gripper_val_mutiple}")
         # Publishers
         self.joint_pub = self.create_publisher(JointState, 'joint_states_single', 1)
+        self.joint_ctrl_pub = self.create_publisher(JointState, 'joint_ctrl', 1)
         self.arm_status_pub = self.create_publisher(PiperStatusMsg, 'arm_status', 1)
         self.end_pose_pub = self.create_publisher(Pose, 'end_pose', 1)
         # Service
@@ -51,6 +52,12 @@ class PiperRosNode(Node):
         self.joint_states.position = [0.0] * 7
         self.joint_states.velocity = [0.0] * 7
         self.joint_states.effort = [0.0] * 7
+        # Joint ctrl
+        self.joint_ctrl = JointState()
+        self.joint_ctrl.name = ['joint0', 'joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']
+        self.joint_ctrl.position = [0.0] * 7
+        self.joint_ctrl.velocity = [0.0] * 7
+        self.joint_ctrl.effort = [0.0] * 7
         # Enable flag
         self.__enable_flag = False
         # Create piper class and open CAN interface
@@ -109,6 +116,7 @@ class PiperRosNode(Node):
 
             self.PublishArmState()
             self.PublishArmJointAndGripper()
+            self.PublishArmCtrlAndGripper()
             self.PublishArmEndPose()
 
             rate.sleep()
@@ -154,11 +162,30 @@ class PiperRosNode(Node):
         vel_3: float = self.piper.GetArmHighSpdInfoMsgs().motor_4.motor_speed / 1000
         vel_4: float = self.piper.GetArmHighSpdInfoMsgs().motor_5.motor_speed / 1000
         vel_5: float = self.piper.GetArmHighSpdInfoMsgs().motor_6.motor_speed / 1000
-        effort_6: float = self.piper.GetArmGripperMsgs().gripper_state.grippers_effort / 1000
-        self.joint_states.position = [joint_0, joint_1, joint_2, joint_3, joint_4, joint_5, joint_6]  # Example values
-        self.joint_states.velocity = [vel_0, vel_1, vel_2, vel_3, vel_4, vel_5, 0.0]  # Example values
-        self.joint_states.effort = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, effort_6]
+        effort_0:float = self.piper.GetArmHighSpdInfoMsgs().motor_1.effort/1000
+        effort_1:float = self.piper.GetArmHighSpdInfoMsgs().motor_2.effort/1000
+        effort_2:float = self.piper.GetArmHighSpdInfoMsgs().motor_3.effort/1000
+        effort_3:float = self.piper.GetArmHighSpdInfoMsgs().motor_4.effort/1000
+        effort_4:float = self.piper.GetArmHighSpdInfoMsgs().motor_5.effort/1000
+        effort_5:float = self.piper.GetArmHighSpdInfoMsgs().motor_6.effort/1000
+        effort_6:float = self.piper.GetArmGripperMsgs().gripper_state.grippers_effort/1000
+        self.joint_states.position = [joint_0,joint_1, joint_2, joint_3, joint_4, joint_5,joint_6]
+        self.joint_states.velocity = [vel_0, vel_1, vel_2, vel_3, vel_4, vel_5]
+        self.joint_states.effort = [effort_0, effort_1, effort_2, effort_3, effort_4, effort_5, effort_6]
+        # 发布所有消息
         self.joint_pub.publish(self.joint_states)
+
+    def PublishArmCtrlAndGripper(self):
+        self.joint_ctrl.header.stamp = self.get_clock().now().to_msg()
+        joint_0: float = (self.piper.GetArmJointCtrl().joint_ctrl.joint_1) * 0.017444
+        joint_1: float = (self.piper.GetArmJointCtrl().joint_ctrl.joint_2) * 0.017444
+        joint_2: float = (self.piper.GetArmJointCtrl().joint_ctrl.joint_3) * 0.017444
+        joint_3: float = (self.piper.GetArmJointCtrl().joint_ctrl.joint_4) * 0.017444
+        joint_4: float = (self.piper.GetArmJointCtrl().joint_ctrl.joint_5) * 0.017444
+        joint_5: float = (self.piper.GetArmJointCtrl().joint_ctrl.joint_6) * 0.017444
+        joint_6: float = self.piper.GetArmGripperCtrl().gripper_ctrl.grippers_angle * 0.001
+        self.joint_ctrl.position = [joint_0, joint_1, joint_2, joint_3, joint_4, joint_5, joint_6]  # Example values
+        self.joint_ctrl_pub.publish(self.joint_ctrl)
 
     def PublishArmEndPose(self):
         # End effector pose
