@@ -1,4 +1,4 @@
-# piper 机械臂(humble)
+# Dual Piper Robot (humble)
 
 ![ubuntu](https://img.shields.io/badge/Ubuntu-22.04-orange.svg)
 
@@ -205,7 +205,26 @@ ros2 topic pub /enable_flag std_msgs/msg/Bool data:\ false\
 
 ```shell
 ros2 topic pub /joint_states sensor_msgs/msg/JointState "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'piper_single'}, name: ['joint1', 'joint2','joint3','joint4','joint5','joint6','joint7'], position: [0.2,0.2,-0.2,0.3,-0.2,0.5,0.01], velocity: [0,0,0,0,0,0,10], effort: [0,0,0,0,0,0,0.5]}"
+```
 
+#### 2.2.2 双机械臂控制
+
+双机械臂系统包含两个独立的Piper机械臂，可以通过以下方式启动：
+
+```shell
+# 启动双机械臂可视化
+ros2 launch dual_piper_description display_dual_piper.launch.py
+```
+
+双机械臂的URDF描述文件位于：
+```
+src/dual_piper_description/urdf/dual_piper.urdf.xacro
+```
+
+可以通过以下方式查看机械臂模型：
+```shell
+# 在RViz中查看双机械臂模型
+ros2 launch dual_piper_description display_dual_piper.launch.py
 ```
 
 ## 3 注意事项

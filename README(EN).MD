@@ -1,4 +1,4 @@
-# AgileX Robotic Arm (humble)
+# Dual Piper Robot (humble)
 
 [CN](README.MD)
 
@@ -12,9 +12,11 @@ Test:
 |---|---|
 |![humble](https://img.shields.io/badge/ros-humble-blue.svg)|![Pass](https://img.shields.io/badge/Pass-blue.svg)|
 
-## Installation
+## 1 Installation
 
-### Install dependencies
+### 1.1 Install Dependencies
+
+Note: python-can version should be higher than 4.3.1
 
 ```shell
 pip3 install python-can
@@ -31,207 +33,220 @@ sudo apt install ros-$ROS_DISTRO-ros2-controllers
 sudo apt install ros-$ROS_DISTRO-controller-manager
 ```
 
-## Quick Start
+## 2 Quick Start
 
-### Enable CAN module
+### 2.1 Enable CAN Module
 
-First, you need to set up the shell script parameters.
+#### 2.1.1 Activate Single CAN Module, **using `can_activate.sh` script**
 
-#### Single robotic arm
+##### 1) PC with only one USB to CAN module
 
-##### PC with Only One USB-to-CAN Module Inserted
-
-- **Use the `can_activate.sh`**
-
-Directly run:
+Execute directly
 
 ```bash
 bash can_activate.sh can0 1000000
 ```
 
-##### PC with Multiple USB-to-CAN Modules Inserted
+##### 2) PC with multiple USB to CAN modules, but activate one at a time
 
-**Use the `can_activate.sh`**
+Note: This is used when using both robot arm and chassis
 
-Disconnect all CAN modules.
-
-Only connect the CAN module linked to the robotic arm to the PC, and then run the script.
+(1) Check the hardware address of the CAN module in the USB port. Unplug all CAN modules, insert only the CAN module connected to the robot arm into the PC, and execute
 
 ```shell
 sudo ethtool -i can0 | grep bus
 ```
 
-and record the `bus-info` value, for example, `1-2:1.0`.
+Record the value of `bus-info`, for example `1-2:1.0`
 
-**Note: Generally, the first inserted CAN module defaults to `can0`. If the CAN interface is not found, use `bash find_all_can_port.sh` to check the CAN names corresponding to the USB addresses.**
+Note: **Generally, the first inserted CAN module will be can0 by default. If you can't find the can, you can use `bash find_all_can_port.sh` to check the can name corresponding to the USB address**
 
-Assuming the recorded `bus-info` value from the above operation is `1-2:1.0`.
-
-Then execute the command to check if the CAN device has been successfully activated.
+(2) Activate the CAN device. Assuming the `bus-info` value recorded above is `1-2:1.0`, execute:
 
 ```bash
 bash can_activate.sh can_piper 1000000 "1-2:1.0"
 ```
 
-**Note: This means that the CAN device connected to the USB port with hardware encoding `1-2:1.0` is renamed to `can_piper`, set to a baud rate of 1,000,000, and activated.**
+Note: **The CAN device inserted in the USB port with hardware code 1-2:1.0 is renamed to can_piper, baud rate is 1000000, and activated**
 
-Then run`ifconfig` to check if `can_piper` appears. If it does, the CAN module has been successfully configured.
+(3) Check if activation is successful
 
-#### Enable multiple CAN modules
+Execute `ifconfig` to see if there is `can_piper`, if yes, the CAN module is set successfully
 
-**Use the `can_config.sh`  here**
+#### 2.1.2 Activate Multiple CAN Modules Simultaneously, **using `can_config.sh` script**
 
-在`can_config.sh`中，`EXPECTED_CAN_COUNT`参数为想要激活的can模块数量,现在假设为2
+##### 1) Plug and unplug CAN modules one by one and record the USB port hardware address for each module
 
-然后can模块中的其中一个单独插入PC，执行
+In `can_config.sh`, the `EXPECTED_CAN_COUNT` parameter is the number of CAN modules you want to activate, now assume it's 2
 
-In the `can_config.sh`, the `EXPECTED_CAN_COUNT` shows the number of the CAN modules you want to activate. Assume it's 2 here.
-
-Then, insert one of the two CAN modules into the PC alone and run the script.
+Then insert one of the CAN modules into the PC alone, execute
 
 ```shell
 sudo ethtool -i can0 | grep bus
 ```
 
-and record the `bus-info` value, for example, `1-2:1.0`.
+Record the value of `bus-info`, for example `1-2:1.0`
 
-Next, insert the second CAN module, ensuring it is connected to a different USB port than the one used previously, and then execute the script.
+(2) Then insert the next CAN module, note that it **cannot** be the same USB port as the last CAN module, then execute
 
 ```shell
 sudo ethtool -i can1 | grep bus
 ```
 
-**Note: Generally, the first inserted CAN module defaults to `can0`, and the second one to `can1`. If the CAN interfaces are not found, use `bash find_all_can_port.sh` to check the CAN names corresponding to the USB addresses.**
+Note: **Generally, the first inserted CAN module will be can0, the second will be can1. If you can't find the can, you can use `bash find_all_can_port.sh` to check the can name corresponding to the USB address**
 
-Assuming the recorded `bus-info` values are `1-2:1.0` and `1-4:1.0`, replace the parameters inside the double quotes in `USB_PORTS["1-9:1.0"]="can_left:1000000"` with `1-2:1.0`.
+##### 2) Predefine USB Ports, Target Interface Names and Their Bit Rates
 
-Similarly, update the other one
+Assuming the `bus-info` values recorded above are `1-2:1.0` and `1-4:1.0`, then replace the parameters inside the double quotes in `USB_PORTS["1-9:1.0"]="can_left:1000000"` with `1-2:1.0` and `1-4:1.0`.
 
-`USB_PORTS["1-5:1.0"]="can_right:1000000"` -> `USB_PORTS["1-4:1.0"]="can_right:1000000"`
+Final result:
 
-**Note: This means that the CAN device connected to the USB port with hardware encoding `1-2:1.0` is renamed to `can_left`, set to a baud rate of 1,000,000, and activated.**
+`USB_PORTS["1-2:1.0"]="can_right:1000000"`
 
-Then execute `bash can_config.sh` and check the terminal output to see if the activation was successful.
+`USB_PORTS["1-4:1.0"]="can_right:1000000"`
 
-Afterward, run `ifconfig` to verify if `can_left` and `can_right` appear. If they do, the CAN modules have been successfully configured.
+Note: **The CAN device inserted in the USB port with hardware code 1-2:1.0 is renamed to can_left, baud rate is 1000000, and activated**
 
-### Start the Node
+##### 3) Check if activation is successful
+
+Execute `bash can_config.sh`
+
+##### 4) Check if CAN is set successfully
+
+Execute `ifconfig` to see if there are `can_left` and `can_right`
+
+### 2.2 Run Nodes
+
+Build
 
 ```shell
 colcon build
 ```
 
-#### Single robotics arm
+#### 2.2.1 Single Robot Arm
 
-Node name: `piper_single_ctrl`
+Node name `piper_single_ctrl`
 
-param
+Parameters
 
 ```shell
-can_port: name of the CAN route to open.
-
-auto_enable: Whether to automatically enable the system. If True, the system will automatically enable upon starting the program.
-#  Set this to False if you want to manually control the enable state. If the program is interrupted and then restarted, the robotic arm will maintain the state it had during the last run.
-# If the arm was enabled, it will remain enabled after restarting.
-# If the arm was disabled, it will remain disabled after restarting.
-
-gripper_exist: Whether there is an end gripper. If True, it means there is an end gripper and the gripper control will be turned on.
-
-rviz_ctrl_flag: Whether to use RViz to send joint angle messages. If True, the system will receive joint angle messages sent by rViz.
-
-gripper_val_mutiple: Set the gripper control multiplier.  
-
-# Since the range of joint7 in RViz is [0, 0.04], while the actual gripper travel is 0.08m, the gripper needs to be set to twice the value in RViz to control the real gripper correctly.
+can_port: CAN route name to open
+auto_enable: Whether to enable automatically, True means enable automatically when starting
+# Note that if this is set to False, after interrupting the program and restarting the node, the robot arm will maintain the state from the last program start
+# If the robot arm was enabled in the last program start, after interrupting the program and restarting the node, the robot arm will still be enabled
+# If the robot arm was disabled in the last program start, after interrupting the program and restarting the node, the robot arm will still be disabled
+gripper_exist: Whether there is an end gripper, True means there is an end gripper, will enable gripper control
+rviz_ctrl_flag: Whether to use rviz to send joint angle messages, True means receive joint angle messages from rviz
+gripper_val_mutiple: Set gripper control multiple
+# Since the range of joint7 in rviz is [0,0.04], and the actual gripper stroke is 0.08m, opening rviz to control the actual gripper requires setting the gripper to double
 ```
 
-There are two launch files for starting the single-arm robot: `start_single_piper_rviz.launch.py` and `start_single_piper.launch.py`.
+There are two launch files for starting a single arm: `start_single_piper_rviz.launch.py` and `start_single_piper.launch.py`
 
-The first one can launch RViz together, allowing you to control the robotic arm by moving the sliders.
+The former can start rviz together, and then you can control the robot arm by dragging the slider
 
-Start the control node.
+Start control node
 
 ```shell
-# start the node
+# Start node
 ros2 run piper piper_single_ctrl --ros-args -p can_port:=can0 -p auto_enable:=false -p gripper_exist:=true -p gripper_val_mutiple:=2
-# start the launch
+# Start launch
 ros2 launch piper start_single_piper.launch.py can_port:=can0 auto_enable:=false gripper_exist:=false gripper_val_mutiple:=2
-# Or,the node can be started with default parameters
+# Or, will run with default parameters
 ros2 launch piper start_single_piper.launch.py
-# You can also use RViz to enable control by adjusting the parameters as described above.
+# You can also use rviz to start control, parameters to change as above
 ros2 launch piper start_single_piper_rviz.launch.py
 ```
 
 `ros2 topic list`
 
 ```shell
-/arm_status #the status of arm
-/enable_flag #Enable flag, sent to the node, send true to enable
-/end_pose #end pose feedback
-/joint_states #Subscribe to the joint message and send the joint position to this message to control the movement of the robot arm
-/joint_states_single #joints feedback
-/pos_cmd #end pose control
+/arm_status #Robot arm status, see below for details
+/enable_flag #Enable flag, send to node, send true to enable
+/end_pose #Robot arm end pose status feedback
+/joint_states #Subscribe to joint messages, sending joint positions to this message can control robot arm movement
+/joint_states_single #Robot arm joint status feedback
+/pos_cmd #End control message
 ```
 
 ros2 service list
 
 ```shell
-/enable_srv #Enable service end
+/enable_srv #Robot arm enable server
 ```
 
-Enable robotic arm
+Enable robot arm
 
 ```shell
-# call service
+# Call server
 ros2 service call /enable_srv piper_msgs/srv/Enable enable_request:\ true\ 
-# pub topic
+# Pub topic
 ros2 topic pub /enable_flag std_msgs/msg/Bool data:\ true\ 
 ```
 
-Disable the robotic arm
+Disable robot arm
 
 ```shell
-# call service
+# Call server
 ros2 service call /enable_srv piper_msgs/srv/Enable enable_request:\ false\ 
-# pub topic
+# Pub topic
 ros2 topic pub /enable_flag std_msgs/msg/Bool data:\ false\ 
 ```
 
 Publish joint messages
 
-Note: The robotic arm will lift. Please ensure there are no obstacles within its working range.
+Note, the robot arm will lift up, please ensure there are no obstacles in the robot arm's working range
 
-The robotic arm will move at 10% of the default speed, and the gripper torque is set to 0.5N.
+The robot arm will move at 10% of the default speed, gripper torque is set to 0.5N
 
-The speed range is limited from 1 to 100. Any value less than 1 will be treated as 1.
+Speed range is limited to 1-100, less than 1 is treated as 1
 
-The position is as follows:
+Position as follows
 
 ```shell
 ros2 topic pub /joint_states sensor_msgs/msg/JointState "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'piper_single'}, name: ['joint1', 'joint2','joint3','joint4','joint5','joint6','joint7'], position: [0.2,0.2,-0.2,0.3,-0.2,0.5,0.01], velocity: [0,0,0,0,0,0,10], effort: [0,0,0,0,0,0,0.5]}"
-
 ```
 
-## Note
+#### 2.2.2 Dual Robot Arm Control
 
-- You need to activate the CAN device and set the correct baud rate before you can read messages from or control the robotic arm.
+The dual robot arm system consists of two independent Piper robot arms, which can be started in the following way:
 
-- If the following appears:
+```shell
+# Start dual robot arm visualization
+ros2 launch dual_piper_description display_dual_piper.launch.py
+```
+
+The URDF description file for the dual robot arms is located at:
+```
+src/dual_piper_description/urdf/dual_piper.urdf.xacro
+```
+
+You can view the robot arm model in the following way:
+```shell
+# View dual robot arm model in RViz
+ros2 launch dual_piper_description display_dual_piper.launch.py
+```
+
+## 3 Notes
+
+- You need to activate the CAN device first and set the correct baud rate before you can read robot arm messages or control the robot arm
+- If you see
 
   ```shell
-  Enable state: False
+  Enable status: False
   <class 'can.exceptions.CanError'> Message NOT sent
   <class 'can.exceptions.CanError'> Message NOT sent
   ```
 
-  This indicates that the robotic arm is not connected to the CAN module. Unplug and re-plug the USB, restart the robotic arm, reactivate the CAN module, and then try restarting the node.
+  It means the robot arm is not connected to the CAN module. Unplug the USB, restart the robot arm, activate the CAN module again, and try to restart the node
 
-- If automatic enabling is turned on and enabling is not successful within 5 seconds, the program will automatically exit.
+- If auto-enable is turned on, it will automatically exit the program if enabling is not successful after 5s
 
-### piper Custom Messages
+### 3.1 Piper Custom Messages
 
-ros package `piper_msgs`
+ROS package `piper_msgs`
 
- **Robotic Arm Status Feedback Message**: Corresponds to the feedback message with `id=0x2A1` in the CAN protocol.
+Robot arm status feedback message, corresponding to the feedback message with `id=0x2A1` in the CAN protocol
 
 `PiperStatusMsg.msg`
 
@@ -242,68 +257,16 @@ uint8 ctrl_mode
 0x01 CAN command control mode
 0x02 Teaching mode
 0x03 Ethernet control mode
-0x04 wifi control mode
-0x05 Remote controller control mode
-0x06 Linked teaching mode
-0x07 Offline track mode
-*/
+0x04 WiFi control mode
+0x05 Remote control mode
+0x06 Linked teaching input mode
+0x07 Offline trajectory mode*/
 uint8 arm_status
 /*
 0x00 Normal
 0x01 Emergency stop
 0x02 No solution
-0x03 Singularity
-0x04 Target angle exceeds limit
-0x05 Joint communication error
-0x06 Joint brake not released
-0x07 Robotic arm collision detected
-0x08 Overspeed during drag teaching
-0x09 Joint status abnormal
-0x0A Other abnormality
-0x0B Teaching record
-0x0C Teaching execution
-0x0D Teaching paused
-0x0E Main control NTC overheating
-0x0F Discharge resistor NTC overheating
-*/
-uint8 mode_feedback
-/*
-0x00 MOVE P
-0x01 MOVE J
-0x02 MOVE L
-0x03 MOVE C
-*/
-uint8 teach_status
-/*
-0x00 Close
-0x01 Start teaching recording (enter drag teaching mode)
-0x02 End teaching recording (exit drag teaching mode)
-0x03 Execute teaching trajectory (reproduce drag teaching trajectory)
-0x04 Pause
-0x05 Resume (continue trajectory reproduction)
-0x06 Terminate execution
-0x07 Move to trajectory starting point
-*/
-uint8 motion_status
-/*
-0x00 Reached the specified point
-0x01 Not reached the specified point
-*/
-uint8 trajectory_num
-/* 0~255 (Feedback in offline trajectory mode) */
-int64 err_code// Error code
-bool joint_1_angle_limit// Joint 1 communication error (0: Normal, 1: Error)
-bool joint_2_angle_limit// Joint 2 communication error (0: Normal, 1: Error)
-bool joint_3_angle_limit// Joint 3 communication error (0: Normal, 1: Error)
-bool joint_4_angle_limit// Joint 4 communication error (0: Normal, 1: Error)
-bool joint_5_angle_limit// Joint 5 communication error (0: Normal, 1: Error)
-bool joint_6_angle_limit// Joint 6 communication error (0: Normal, 1: Error)
-bool communication_status_joint_1// Joint 1 angle exceeds limit (0: Normal, 1: Error)
-bool communication_status_joint_2// Joint 2 angle exceeds limit (0: Normal, 1: Error)
-bool communication_status_joint_3// Joint 3 angle exceeds limit (0: Normal, 1: Error)
-bool communication_status_joint_4// Joint 4 angle exceeds limit (0: Normal, 1: Error)
-bool communication_status_joint_5// Joint 5 angle exceeds limit (0: Normal, 1: Error)
-bool communication_status_joint_6// Joint 6 angle exceeds limit (0: Normal, 1: Error)
+0x03 Singular point
 ```
 
 End-effector pose control: Note that some singularities may be unreachable.
