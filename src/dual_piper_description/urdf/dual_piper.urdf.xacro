@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_piper">
-    <!-- Create a base link that will hold both arms -->
-    <link name="world">
+
+    <!-- 1. Add the true root world link (minimal) -->
+    <link name="world"/>
+
+    <!-- 2. Rename the existing physical base link -->
+    <link name="base">
         <visual>
             <origin xyz="0 0 0" rpy="0 0 1.5708"/>
             <geometry>
@@ -19,9 +23,17 @@
         </collision>
         <inertial>
             <mass value="1.0"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
             <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
         </inertial>
     </link>
+
+    <!-- 3. Add a fixed joint connecting world to the base -->
+    <joint name="world_to_base" type="fixed">
+        <parent link="world"/>
+        <child link="base"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
 
     <!-- Create a macro for the Piper arm -->
     <xacro:macro name="piper_arm" params="prefix parent_link x y z roll pitch yaw">
@@ -79,7 +91,7 @@
             <child link="${prefix}link1"/>
             <origin xyz="0 0 0.123" rpy="0 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit lower="-2.618" upper="2.168" effort="100" velocity="5"/>
+            <limit lower="-2.618" upper="2.168" effort="100" velocity="5.0"/>
         </joint>
 
         <link name="${prefix}link2">
@@ -107,7 +119,7 @@
             <child link="${prefix}link2"/>
             <origin xyz="0 0 0" rpy="1.5708 -0.10095 -3.1416"/>
             <axis xyz="0 0 1"/>
-            <limit lower="0" upper="3.14" effort="100" velocity="5"/>
+            <limit lower="0" upper="3.14" effort="100" velocity="5.0"/>
         </joint>
 
         <link name="${prefix}link3">
@@ -135,7 +147,7 @@
             <child link="${prefix}link3"/>
             <origin xyz="0.28503 0 0" rpy="0 0 -1.759"/>
             <axis xyz="0 0 1"/>
-            <limit lower="-2.967" upper="0" effort="100" velocity="5"/>
+            <limit lower="-2.967" upper="0" effort="100" velocity="5.0"/>
         </joint>
 
         <!-- Add link4 -->
@@ -165,7 +177,7 @@
             <child link="${prefix}link4"/>
             <origin xyz="-0.021984 -0.25075 0" rpy="1.5708 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit lower="-1.745" upper="1.745" effort="100" velocity="5"/>
+            <limit lower="-1.745" upper="1.745" effort="100" velocity="5.0"/>
         </joint>
 
         <!-- Add link5 -->
@@ -195,7 +207,7 @@
             <child link="${prefix}link5"/>
             <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit lower="-1.22" upper="1.22" effort="100" velocity="5"/>
+            <limit lower="-1.22" upper="1.22" effort="100" velocity="5.0"/>
         </joint>
 
         <!-- Add link6 -->
@@ -225,7 +237,7 @@
             <child link="${prefix}link6"/>
             <origin xyz="8.8259E-05 -0.091 0" rpy="1.5708 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit lower="-2.0944" upper="2.0944" effort="100" velocity="3"/>
+            <limit lower="-2.0944" upper="2.0944" effort="100" velocity="3.0"/>
         </joint>
 
         <!-- Add gripper base -->
@@ -258,9 +270,9 @@
         <!-- Add gripper links -->
         <link name="${prefix}link7">
             <inertial>
-                <origin xyz="0.00065123185041968 -0.0491929869131989 0.00972258769184025" rpy="0 0 0"/>
-                <mass value="0.025"/>
-                <inertia ixx="0.00007371" ixy="-0.00000113" ixz="0.00000021" iyy="-0.00000113" iyz="-0.00001372" izz="0.0000747"/>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <mass value="0.01"/>
+                <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
             </inertial>
             <visual>
                 <geometry>
@@ -282,14 +294,14 @@
             <child link="${prefix}link7"/>
             <origin xyz="0 0 0.1358" rpy="1.5708 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit lower="0" upper="0.035" effort="10" velocity="1"/>
+            <limit lower="0" upper="0.035" effort="10" velocity="1.0"/>
         </joint>
 
         <link name="${prefix}link8">
             <inertial>
-                <origin xyz="0.000651231850419722 -0.0491929869131991 0.00972258769184024" rpy="0 0 0"/>
-                <mass value="0.025"/>
-                <inertia ixx="0.00007371" ixy="-0.00000113" ixz="0.00000021" iyy="-0.00000113" iyz="-0.00001372" izz="0.0000747"/>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <mass value="0.01"/>
+                <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
             </inertial>
             <visual>
                 <geometry>
@@ -311,14 +323,15 @@
             <child link="${prefix}link8"/>
             <origin xyz="0 0 0.1358" rpy="1.5708 0 -3.1416"/>
             <axis xyz="0 0 -1"/>
-            <limit lower="-0.035" upper="0" effort="10" velocity="1"/>
+            <limit lower="-0.035" upper="0" effort="10" velocity="1.0"/>
         </joint>
     </xacro:macro>
 
+    <!-- 4. Update parent_link to be the renamed 'base' link -->
     <!-- Create the left arm -->
-    <xacro:piper_arm prefix="left_" parent_link="world" x="0.19" y="0" z="0.515" roll="0" pitch="0" yaw="1.5708"/>
+    <xacro:piper_arm prefix="left_" parent_link="base" x="0.19" y="0" z="0.515" roll="0" pitch="0" yaw="1.5708"/>
 
     <!-- Create the right arm -->
-    <xacro:piper_arm prefix="right_" parent_link="world" x="-0.21" y="0" z="0.515" roll="0" pitch="0" yaw="1.5708"/>
+    <xacro:piper_arm prefix="right_" parent_link="base" x="-0.21" y="0" z="0.515" roll="0" pitch="0" yaw="1.5708"/>
 
 </robot> 
