@@ -1,0 +1,4 @@
+  <!-- Instantiate the ros2_control component -->
+  <xacro:dual_piper_ros2_control
+      name="DualPiper"
+      initial_positions_file="$(arg initial_positions_file)" /> 
